@@ -33,6 +33,7 @@ import org.example.project.data.report.ReportViewModel
 import androidx.compose.runtime.remember
 import org.example.project.data.report.ReportModel
 import org.example.project.data.report.ReportUiState
+import org.example.project.data.report.Location
 import org.example.project.ui.report.EditReportScreen
 import org.example.project.ui.report.MyReportsScreen
 import org.example.project.ui.report.ReportDetailsScreen
@@ -59,12 +60,12 @@ class MainActivity : ComponentActivity() {
                             route?.startsWith("edit-report") == true
 
                 fun titleFor(route: String?): String = when {
-                    route == "feed"                 -> "Feed"
+                    route == "feed"                 -> "Wine Reviews"
                     route == "profile"              -> "Profile"
-                    route == "reports"              -> "My Reports"
-                    route?.startsWith("new-report") == true -> "New Report"
-                    route?.startsWith("report-details") == true -> "Report Details"
-                    route?.startsWith("edit-report") == true -> "Edit Report"
+                    route == "reports"              -> "My Reviews"
+                    route?.startsWith("new-report") == true -> "New Wine Review"
+                    route?.startsWith("report-details") == true -> "Review Details"
+                    route?.startsWith("edit-report") == true -> "Edit Review"
 
                     else -> route.orEmpty()
                         .replaceFirstChar { it.uppercaseChar() }
@@ -82,7 +83,6 @@ class MainActivity : ComponentActivity() {
                             ?.replaceFirstChar { it.uppercaseChar() }
                             ?: ""
                         if (shouldShowBars(currentRoute)) {
-
                             AppTopBar(
                                 title = titleFor(currentRoute),
                                 onBackClick = { navController.popBackStack() }
@@ -199,33 +199,35 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-// 6) new report
+                        // 6) new wine review
                         composable("new-report") {
                             val reportVm = remember { ReportViewModel() }
+                            val userVm: AndroidUserViewModel = viewModel()
+                            val currentUid by userVm.currentUid.collectAsState()
                             val uiState by reportVm.uiState.collectAsState()
 
                             val pickedLocationFlow = navController.currentBackStackEntry
                                 ?.savedStateHandle
-                                ?.getStateFlow("picked_location", null as Pair<Double, Double>?)
+                                ?.getStateFlow("picked_location", null as Location?)
                             val pickedLocation by (pickedLocationFlow?.collectAsState() ?: remember { mutableStateOf(null) })
-
-
 
                             NewReportScreen(
                                 pickedLocation = pickedLocation,
                                 onImagePicked = { /* ... */ },
-                            ) { description, name, phone, isLost, imageUrl, lat, lng ->
-                                reportVm.saveReport(
-                                    description = description,
-                                    name = name,
-                                    phone = phone,
-                                    imageUrl = imageUrl,
-                                    isLost = isLost,
-                                    location = null,
-                                    lat = lat,
-                                    lng=lng
-                                )
-                            }
+                                onPublish = { userName, wineryName, content, rating, imageUrl, location ->
+                                    currentUid?.let { userId ->
+                                        reportVm.saveReport(
+                                            userId = userId,
+                                            userName = userName,
+                                            wineryName = wineryName,
+                                            content = content,
+                                            imageUrl = imageUrl,
+                                            rating = rating,
+                                            location = location
+                                        )
+                                    }
+                                }
+                            )
 
                             LaunchedEffect(uiState) {
                                 if (uiState is ReportUiState.SaveSuccess) {
@@ -236,6 +238,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
+                        // 7) my wine reviews
                         composable("reports") {
                             val reportVm = remember { ReportViewModel() }
                             val userVm: AndroidUserViewModel = viewModel()
@@ -263,6 +266,8 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         }
+
+                        // 8) wine review details
                         composable("report-details/{reportJson}") { backStackEntry ->
                             val raw = backStackEntry.arguments?.getString("reportJson").orEmpty()
                             val decoded = URLDecoder.decode(raw, Charsets.UTF_8.name())
@@ -276,8 +281,7 @@ class MainActivity : ComponentActivity() {
                                 report = report,
                                 onEdit = {
                                     val json = Json.encodeToString(report)
-                                    val encoded =
-                                        java.net.URLEncoder.encode(json, Charsets.UTF_8.name())
+                                    val encoded = java.net.URLEncoder.encode(json, Charsets.UTF_8.name())
                                     navController.navigate("edit-report/$encoded")
                                 },
                                 onDelete = {
@@ -296,6 +300,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
+                        // 9) edit wine review
                         composable("edit-report/{reportJson}") { backStackEntry ->
                             val raw = backStackEntry.arguments?.getString("reportJson").orEmpty()
                             val decoded = java.net.URLDecoder.decode(raw, Charsets.UTF_8.name())
@@ -306,19 +311,19 @@ class MainActivity : ComponentActivity() {
 
                             EditReportScreen(
                                 report = report,
-                                onSave = { description, name, phone, isLost, lat, lng, imageUrl  ->
+                                onSave = { userName, wineryName, content, rating, location, imageUrl ->
                                     reportVm.updateReport(
                                         reportId = report.id,
-                                        description = description,
-                                        name = name,
-                                        phone = phone,
-                                        isLost = isLost,
-                                        lat = lat,
-                                        lng = lng,
+                                        userName = userName,
+                                        wineryName = wineryName,
+                                        content = content,
+                                        rating = rating,
+                                        location = location,
                                         imageUrl = imageUrl
                                     )
                                 }
                             )
+
                             LaunchedEffect(uiState) {
                                 if (uiState is ReportUiState.UpdateSuccess) {
                                     navController.navigate("reports") {
@@ -327,9 +332,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
-
                     }
-
                 }
             }
         }

@@ -8,17 +8,17 @@ class ReportRepositoryImpl(
     private val firebase: FirebaseRepository
 ) : ReportRepository {
     constructor() : this(RemoteFirebaseRepository())
+
     override suspend fun saveReport(
-        description: String,
-        name: String,
-        phone: String,
+        userId: String,
+        userName: String,
+        wineryName: String,
+        content: String,
         imageUrl: String,
-        isLost: Boolean,
-        location: String?,
-        lat: Double,
-        lng: Double
+        rating: Int,
+        location: Location?
     ) {
-        firebase.saveReport(description, name, phone, imageUrl, isLost, location, lat, lng)
+        firebase.saveReport(userId, userName, wineryName, content, imageUrl, rating, location)
     }
 
     override suspend fun getReportsForUser(userId: String): List<ReportModel> =
@@ -27,20 +27,16 @@ class ReportRepositoryImpl(
     override suspend fun getAllReports(): List<ReportModel> =
         firebase.getAllReports()
 
-
     override suspend fun updateReport(
         reportId: String,
-        description: String?,
-        name: String?,
-        phone: String?,
+        userName: String?,
+        wineryName: String?,
+        content: String?,
         imageUrl: String?,
-        isLost: Boolean?,
-        location: String?,
-        lat: Double?,
-        lng: Double?
-    ) = firebase.updateReport(reportId, description, name, phone, imageUrl, isLost, location, lat, lng)
+        rating: Int?,
+        location: Location?
+    ) = firebase.updateReport(reportId, userName, wineryName, content, imageUrl, rating, location)
 
     override suspend fun deleteReport(reportId: String) =
         firebase.deleteReport(reportId)
-
 }

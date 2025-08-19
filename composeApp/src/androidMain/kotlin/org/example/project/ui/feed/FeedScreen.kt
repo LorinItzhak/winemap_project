@@ -1,44 +1,56 @@
 package org.example.project.ui.feed
 
+
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapProperties
-import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.example.project.R
 import org.example.project.data.report.ReportModel
 import org.example.project.location.getLocation
 
+private val balooBhaijaan2Family = FontFamily(
+    Font(R.font.baloobhaijaan2_regular,   FontWeight.Normal),
+    Font(R.font.baloobhaijaan2_medium,    FontWeight.Medium),
+    Font(R.font.baloobhaijaan2_semibold,  FontWeight.SemiBold),
+    Font(R.font.baloobhaijaan2_bold,      FontWeight.Bold),
+    Font(R.font.baloobhaijaan2_extrabold, FontWeight.ExtraBold)
+)
+
+private val WineColor = Color(0xFF8B0000)
+private val LightWineColor = Color(0xFFA52A2A)
+private val StarColor = Color(0xFFFFD700)
+private val BgGray = Color(0xFFF0F0F0)
+
 @Composable
-fun MapView( reports: List<ReportModel>,
-             onReportClicked: (ReportModel) -> Unit
+fun MapView(
+    reports: List<ReportModel>,
+    onReportClicked: (ReportModel) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -71,9 +83,8 @@ fun MapView( reports: List<ReportModel>,
     }
 
     val cameraState = rememberCameraPositionState()
-    val userLatLng = remember { mutableStateOf<LatLng?>(null) }
 
-    // Fetch last location once we have permission
+    // Fetch location once we have permission
     LaunchedEffect(hasLocationPermission.value) {
         if (hasLocationPermission.value) {
             runCatching { withContext(Dispatchers.IO) { getLocation() } }
@@ -96,29 +107,103 @@ fun MapView( reports: List<ReportModel>,
             myLocationButtonEnabled = hasLocationPermission.value,
             zoomControlsEnabled = true,
         )
-    )
-    {
-        // 🔴 Pins for ALL reports that have coordinates
+    ) {
+        // Wine review markers
         reports.forEach { rpt ->
-            val lat = rpt.lat
-            val lng = rpt.lng
-            if (lat != null && lng != null) {
-                val pos = LatLng(lat, lng)
-                Marker(
+            val location = rpt.location
+            if (location != null && !location.lat.isNaN() && !location.lng.isNaN()) {
+                val pos = LatLng(location.lat, location.lng)
+
+                // Custom marker for wine reviews
+                MarkerInfoWindow(
                     state = MarkerState(position = pos),
-                    title = if (rpt.name.isNotBlank()) rpt.name
-                    else if (rpt.isLost) "Lost" else "Found",
-                    snippet = rpt.description.take(60),
                     onClick = {
-                        onReportClicked(rpt)   // navigate to details
-                        true                   // consume click
+                        onReportClicked(rpt)
+                        true
                     }
-                )
+                ) {
+                    WineMarkerContent(report = rpt)
+                }
             }
         }
     }
 }
 
+@Composable
+fun WineMarkerContent(report: ReportModel) {
+    Card(
+        modifier = Modifier
+            .widthIn(max = 250.dp)
+            .padding(4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Winery name
+            Text(
+                text = report.wineryName.ifBlank { "Unknown Winery" },
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = balooBhaijaan2Family,
+                    fontWeight = FontWeight.Bold,
+                    color = WineColor
+                ),
+                maxLines = 1
+            )
+
+            // Rating stars
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                repeat(5) { index ->
+                    Icon(
+                        imageVector = Icons.Filled.Star,
+                        contentDescription = null,
+                        tint = if (index < report.rating) StarColor else Color.LightGray,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = "${report.rating}/5",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = balooBhaijaan2Family,
+                        color = Color.Gray
+                    )
+                )
+            }
+
+            // Review preview
+            if (report.content.isNotBlank()) {
+                Text(
+                    text = report.content.take(80) + if (report.content.length > 80) "..." else "",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = balooBhaijaan2Family,
+                        color = Color.DarkGray
+                    ),
+                    maxLines = 2
+                )
+            }
+
+            // Reviewer
+            if (report.userName.isNotBlank()) {
+                Text(
+                    text = "by ${report.userName}",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = balooBhaijaan2Family,
+                        fontWeight = FontWeight.Medium,
+                        color = WineColor,
+                        fontSize = 10.sp
+                    )
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun FeedScreen(
@@ -127,23 +212,39 @@ fun FeedScreen(
     onPublishClicked: () -> Unit = {}
 ) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BgGray),
         contentAlignment = Alignment.Center
     ) {
         MapView(
             reports = reports,
             onReportClicked = onReportClicked
         )
-        SmallFloatingActionButton(
+
+        // Floating Action Button
+        FloatingActionButton(
             onClick = onPublishClicked,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 16.dp, top = 16.dp),
-            containerColor = Color(0xFF90D1D8),
+                .padding(16.dp),
+            containerColor = WineColor,
             contentColor = Color.White,
         ) {
-            Icon(Icons.Default.Add, contentDescription = "New report")
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "New wine review")
+                Text(
+                    "Review",
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontFamily = balooBhaijaan2Family,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
         }
     }
 }
-

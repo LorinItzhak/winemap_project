@@ -30,6 +30,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import coil3.compose.AsyncImage
 import com.cloudinary.android.MediaManager
 import com.google.android.gms.maps.model.LatLng
@@ -39,6 +41,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.example.project.R
 import org.example.project.data.report.ReportModel
+import org.example.project.data.report.Location
 import java.util.Locale
 import kotlin.coroutines.resumeWithException
 
@@ -52,14 +55,15 @@ private val balooBhaijaan2Family = FontFamily(
 )
 
 private val BgGray      = Color(0xFFF0F0F0)
-private val LostColor   = Color(0xFFF69092)
+private val WineColor   = Color(0xFF8B0000)
 private val PrimaryPink = Color(0xFFFEB0B2)
 private val LabelGray   = Color(0xFF8D8D8D)
+private val StarColor   = Color(0xFFFFD700)
 
 @Composable
 fun EditReportScreen(
     report: ReportModel,
-    onSave: (description: String, name: String, phone: String, isLost: Boolean, lat: Double, lng: Double, imageUrl: String?) -> Unit
+    onSave: (userName: String, wineryName: String, content: String, rating: Int, location: Location?, imageUrl: String?) -> Unit
 ) {
 
     var localImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -70,16 +74,14 @@ fun EditReportScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-
     // Text fields
-    var description by remember { mutableStateOf(report.description) }
-    var name by remember { mutableStateOf(report.name) }
-    var phone by remember { mutableStateOf(report.phone) }
-    var isLost by remember { mutableStateOf(report.isLost) }
+    var userName by remember { mutableStateOf(report.userName) }
+    var wineryName by remember { mutableStateOf(report.wineryName) }
+    var content by remember { mutableStateOf(report.content) }
+    var rating by remember { mutableStateOf(report.rating) }
 
     // Location (pre-filled from report; stays as-is unless user changes it)
-    var draftLat by remember { mutableStateOf(report.lat) }
-    var draftLng by remember { mutableStateOf(report.lng) }
+    var draftLocation by remember { mutableStateOf(report.location) }
     var showPicker by remember { mutableStateOf(false) }
     var locationErr by remember { mutableStateOf<String?>(null) }
 
@@ -98,52 +100,7 @@ fun EditReportScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Button(
-                    onClick = { isLost = true },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isLost) LostColor else PrimaryPink,
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        "Lost",
-                        fontFamily = balooBhaijaan2Family,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                }
-
-                Button(
-                    onClick = { isLost = false },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (!isLost) LostColor else PrimaryPink,
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        "Found",
-                        fontFamily = balooBhaijaan2Family,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                }
-            }
-
-
+            // Image section
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -186,14 +143,31 @@ fun EditReportScreen(
                 }
             }
 
+            // User name field
+            LabeledEditor("Your name", userName) { userName = it }
 
-            LabeledEditor("description :", description) { description = it }
-            LabeledEditor("contact me :", phone) { phone = it }
-            LabeledEditor("name :", name) { name = it }
+            // Winery name field
+            LabeledEditor("Winery name", wineryName) { wineryName = it }
 
+            // Content/Review field
+            LabeledEditor("Your review", content, maxLines = 4) { content = it }
+
+            // Rating section
+            Text(
+                text = "Rating",
+                style = MaterialTheme.typography.titleMedium,
+                color = LabelGray,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            RatingBar(
+                rating = rating,
+                onRatingChange = { rating = it }
+            )
+
+            // Location section
             LocationEditor(
-                lat = draftLat,
-                lng = draftLng,
+                location = draftLocation,
                 onChangeClick = {
                     showPicker = true
                     locationErr = null
@@ -207,28 +181,21 @@ fun EditReportScreen(
             Spacer(Modifier.height(96.dp))
         }
 
-        // Save button is INSIDE the Box so .align works
+        // Save button
         Button(
             onClick = {
-                val lat = draftLat
-                val lng = draftLng
-                if (lat == null || lng == null) {
-                    locationErr = "Please pick a location before saving."
-                    return@Button
-                }
                 var finalUrl: String? = null
                 if (localImageUri != null) {
-                    // use a scope tied to composition rather than creating a new one
                     scope.launch {
                         try {
                             finalUrl = uploadToCloudinary(context, localImageUri!!)
-                            onSave(description, name, phone, isLost, lat, lng, finalUrl)
+                            onSave(userName, wineryName, content, rating, draftLocation, finalUrl)
                         } catch (_: Throwable) {
-                            onSave(description, name, phone, isLost, lat, lng, report.imageUrl)
+                            onSave(userName, wineryName, content, rating, draftLocation, report.imageUrl)
                         }
                     }
                 } else {
-                    onSave(description, name, phone, isLost, lat, lng, null)
+                    onSave(userName, wineryName, content, rating, draftLocation, null)
                 }
             },
             modifier = Modifier
@@ -238,7 +205,7 @@ fun EditReportScreen(
                 .height(52.dp),
             shape = RoundedCornerShape(14.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = PrimaryPink,
+                containerColor = WineColor,
                 contentColor = Color.White
             )
         ) {
@@ -248,13 +215,23 @@ fun EditReportScreen(
             )
         }
 
-        // Open your existing MapPickerDialog when the user taps "Change location"
+        // Map picker dialog
         if (showPicker) {
             MapPickerDialog(
                 onDismiss = { showPicker = false },
                 onPicked = { lat, lng ->
-                    draftLat = lat
-                    draftLng = lng
+                    // Create new Location object
+                    scope.launch {
+                        val address = try {
+                            withContext(Dispatchers.IO) {
+                                val list = Geocoder(context, Locale.getDefault()).getFromLocation(lat, lng, 1)
+                                list?.firstOrNull()?.getAddressLine(0) ?: "Unknown location"
+                            }
+                        } catch (_: Exception) {
+                            "Unknown location"
+                        }
+                        draftLocation = Location(lat = lat, lng = lng, name = address)
+                    }
                     showPicker = false
                 }
             )
@@ -262,6 +239,32 @@ fun EditReportScreen(
     }
 }
 
+@Composable
+private fun RatingBar(
+    rating: Int,
+    onRatingChange: (Int) -> Unit,
+    maxRating: Int = 5
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.padding(vertical = 8.dp)
+    ) {
+        repeat(maxRating) { index ->
+            val starIndex = index + 1
+            IconButton(
+                onClick = { onRatingChange(starIndex) },
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(
+                    imageVector = if (starIndex <= rating) Icons.Filled.Star else Icons.Outlined.Star,
+                    contentDescription = "Rate $starIndex stars",
+                    tint = if (starIndex <= rating) StarColor else LabelGray,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+        }
+    }
+}
 
 suspend fun uploadToCloudinary(ctx: Context, uri: Uri): String =
     withContext(Dispatchers.IO) {
@@ -286,11 +289,11 @@ suspend fun uploadToCloudinary(ctx: Context, uri: Uri): String =
         }
     }
 
-
 @Composable
 private fun LabeledEditor(
     label: String,
     value: String,
+    maxLines: Int = 1,
     onValueChange: (String) -> Unit,
 ) {
     OutlinedTextField(
@@ -301,70 +304,45 @@ private fun LabeledEditor(
             .heightIn(min = 48.dp),
         label = {
             Text(
-                // drop trailing " :" if present
-                text = label.removeSuffix(" :"),
+                text = label,
                 color = LabelGray,
             )
         },
-        singleLine = false,
+        maxLines = maxLines,
         shape = RoundedCornerShape(8.dp),
     )
 }
 
 @Composable
 private fun LocationEditor(
-    lat: Double?,
-    lng: Double?,
+    location: Location?,
     onChangeClick: () -> Unit
 ) {
-    val context = LocalContext.current
-    val spot = lat?.let { la -> lng?.let { lo -> LatLng(la, lo) } }
-
-    // Resolve address from current (or unchanged) coordinates
-    var address by remember(lat, lng) { mutableStateOf<String?>(null) }
-    LaunchedEffect(lat, lng) {
-        address = if (lat == null || lng == null) null
-        else try {
-            withContext(Dispatchers.IO) {
-                val list = Geocoder(context, Locale.getDefault()).getFromLocation(lat, lng, 1)
-                val a = list?.firstOrNull()
-                a?.getAddressLine(0)
-            }
-        } catch (_: Exception) {
-            null
-        }
-    }
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = when {
-                address != null-> address!!
-                spot != null-> String.format(Locale.getDefault(), "%.5f, %.5f", lat, lng)
-                else-> "No location selected"
-            },
+            text = location?.name ?: "No location selected",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.weight(1f)
         )
         Spacer(Modifier.width(12.dp))
         OutlinedButton(
             onClick = onChangeClick,
-            shape  = RoundedCornerShape(10.dp),
-            border = BorderStroke(1.dp, Color.White),
+            shape = RoundedCornerShape(10.dp),
+            border = BorderStroke(1.dp, WineColor),
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = Color.White.copy(alpha = 0.3f),
-                contentColor   = PrimaryPink
+                contentColor = WineColor
             )
         ) {
             Text(
-                if (lat == null || lng == null) "Pick location" else "Change location",
+                if (location == null) "Pick location" else "Change location",
                 fontFamily = balooBhaijaan2Family,
                 fontWeight = FontWeight.Bold,
-                fontSize   = 16.sp
+                fontSize = 16.sp
             )
         }
-
     }
 }
