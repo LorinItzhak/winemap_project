@@ -1,32 +1,26 @@
 package org.example.project.data.report
-
-
 interface ReportRepository {
     suspend fun saveReport(
-        description: String,
-        name: String,
-        phone: String,
+        userId: String,
+        userName: String,
+        wineryName: String,
+        content: String,
         imageUrl: String,
-        isLost: Boolean,
-        location: String? = null,
-        lat: Double,
-        lng: Double
+        rating: Int,
+        location: Location? = null
     )
 
     suspend fun getReportsForUser(userId: String): List<ReportModel>
     suspend fun getAllReports(): List<ReportModel>
 
-
     suspend fun updateReport(
         reportId: String,
-        description: String? = null,
-        name: String? = null,
-        phone: String? = null,
+        userName: String? = null,
+        wineryName: String? = null,
+        content: String? = null,
         imageUrl: String? = null,
-        isLost: Boolean? = null,
-        location: String? = null,
-        lat: Double? =null,
-        lng: Double?=null
+        rating: Int? = null,
+        location: Location? = null
     )
 
     suspend fun deleteReport(reportId: String)

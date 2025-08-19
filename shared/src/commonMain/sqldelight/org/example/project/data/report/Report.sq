@@ -1,19 +1,18 @@
 import kotlin.Boolean;
 
-
 -- Table schema
 CREATE TABLE reports (
-  id         TEXT    NOT NULL PRIMARY KEY,
-  userId     TEXT    NOT NULL,
-  description TEXT   NOT NULL,
-  name       TEXT    NOT NULL,
-  phone      TEXT    NOT NULL,
-  imageUrl   TEXT    NOT NULL,
-  isLost     INTEGER AS Boolean NOT NULL,
-  location   TEXT,             -- nullable
-  lat        REAL    NOT NULL, -- Double; you can store Double.NaN if unknown
-  lng        REAL    NOT NULL, -- Double; you can store Double.NaN if unknown
-  createdAt  INTEGER NOT NULL  -- Long epoch millis
+  id           TEXT    NOT NULL PRIMARY KEY,
+  userId       TEXT    NOT NULL,
+  userName     TEXT    NOT NULL,
+  wineryName   TEXT    NOT NULL,
+  content      TEXT    NOT NULL,
+  imageUrl     TEXT    NOT NULL,
+  rating       INTEGER NOT NULL, -- 1-5 stars
+  createdAt    INTEGER NOT NULL, -- Long epoch millis
+  locationName TEXT,             -- nullable location name
+  locationLat  REAL,             -- nullable latitude
+  locationLng  REAL              -- nullable longitude
 );
 
 -- Optional but recommended: index to speed up "my reports" sorted by recency
@@ -39,14 +38,14 @@ WHERE id = ?;
 
 insertReport:
 INSERT INTO reports(
-  id, userId, description, name, phone, imageUrl, isLost, location, lat, lng, createdAt
+  id, userId, userName, wineryName, content, imageUrl, rating, createdAt, locationName, locationLat, locationLng
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- Upsert without ON CONFLICT: works with PRIMARY KEY(id)
 upsertReport:
 INSERT OR REPLACE INTO reports(
-  id, userId, description, name, phone, imageUrl, isLost, location, lat, lng, createdAt
+  id, userId, userName, wineryName, content, imageUrl, rating, createdAt, locationName, locationLat, locationLng
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 

@@ -3,13 +3,17 @@ package org.example.project.data.report
 fun Reports.toModel() = ReportModel(
     id = id,
     userId = userId,
-    description = description,
-    name = name,
-    phone = phone,
+    userName = userName,
+    wineryName = wineryName,
+    content = content,
     imageUrl = imageUrl,
-    isLost = isLost,
-    location = location,
-    lat = lat,
-    lng = lng,
-    createdAt = createdAt
+    rating = rating.toInt(),
+    createdAt = createdAt,
+    location = if (locationName != null && locationLat != null && locationLng != null) {
+        Location(
+            lat = locationLat,
+            lng = locationLng,
+            name = locationName
+        )
+    } else null
 )

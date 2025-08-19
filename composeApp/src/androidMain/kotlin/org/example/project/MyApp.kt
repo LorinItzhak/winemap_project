@@ -17,9 +17,9 @@ class MyApp : Application() {
         ctx = applicationContext
 
         val config = hashMapOf(
-            "cloud_name" to "duk7ujnww",
-            "api_key"    to "344296978824576",
-            "api_secret" to "WI-D8ORFmsk1cJWP2aGuiu6mPWk"
+            "cloud_name" to "detpngf0i",
+            "api_key"    to "859679673437186",
+            "api_secret" to "mupstOb71Ci2Yg3C3_kI8tRD-CA"
         )
         MediaManager.init(this, config)
     }

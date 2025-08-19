@@ -29,114 +29,233 @@ struct ReportDetailsView: View {
             Color("BackgroundGray").ignoresSafeArea()
 
             ScrollView {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 16) {
 
-                    // Image
+                    // Wine Image
                     if !current.imageUrl.isEmpty, let url = URL(string: current.imageUrl) {
                         AsyncImage(url: url) { img in
                             img.resizable().scaledToFill()
                         } placeholder: {
-                            Color.gray.opacity(0.2)
+                            Rectangle()
+                                .fill(Color.gray.opacity(0.2))
+                                .overlay(
+                                    ProgressView()
+                                        .scaleEffect(1.2)
+                                )
                         }
                         .frame(maxWidth: .infinity)
-                        .frame(height: 200)
+                        .frame(height: 250)
                         .clipped()
-                        .cornerRadius(8)
+                        .cornerRadius(12)
+                    } else {
+                        Rectangle()
+                        .fill(Color.gray.opacity(0.15))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 250)
+                        .overlay(
+                            VStack(spacing: 8) {
+                                Image(systemName: "wineglass")
+                                    .font(.system(size: 48))
+                                    .foregroundColor(.gray)
+                                Text("No image")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                        )
+                        .cornerRadius(12)
                     }
 
-                    // Lost / Found — always dark green, custom font
-                    Text(current.isLost ? "lost!" : "found!")
+                    // Winery Name (Main Title)
+                    Text(current.wineryName.isEmpty ? "Unknown Winery" : current.wineryName)
                         .font(.custom("BalooBhaijaan2-Bold", size: 28))
-                        .foregroundColor(Color.darkGreen)
+                        .foregroundColor(Color("WineColor"))
 
-                    // Inline fields (title bold, value not)
-                    LabeledInline(title: "description :", value: current.description_)
-                    LabeledInline(title: "contact me :", value: current.phone.isEmpty ? "—" : current.phone)
-                    if !current.name.isEmpty {
-                        LabeledInline(title: "", value: current.name)
+                    // Rating Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Rating")
+                            .font(.custom("BalooBhaijaan2-Bold", size: 20))
+                            .foregroundColor(Color("WineColor"))
+
+                        HStack(spacing: 4) {
+                            ForEach(0..<5) { index in
+                                Image(systemName: index < current.rating ? "star.fill" : "star")
+                                    .font(.title3)
+                                    .foregroundColor(index < current.rating ? Color("StarColor") : Color.gray.opacity(0.5))
+                            }
+
+                            Spacer()
+
+                            Text("\(current.rating)/5 stars")
+                                .font(.custom("BalooBhaijaan2-Medium", size: 16))
+                                .foregroundColor(.secondary)
+                        }
+
+                        Divider()
                     }
 
-                    // Location map + address line
-                    if let lat = safeLat, let lng = safeLng {
-                        HStack(alignment: .firstTextBaseline, spacing: 8) {
-                            Image(systemName: "mappin.and.ellipse")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(Color("PrimaryPink"))
-                            Text(addressText.isEmpty
-                                 ? String(format: "Lat %.5f, Lng %.5f", lat, lng)
-                                 : addressText)
-                            .font(.custom("BalooBhaijaan2-Medium", size: 16))
-                            .foregroundColor(addressText.isEmpty ? .secondary : .primary)
-                            .lineLimit(nil)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                    // Review Content
+                    if !current.content.isEmpty {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Review")
+                                .font(.custom("BalooBhaijaan2-Bold", size: 20))
+                                .foregroundColor(Color("WineColor"))
+
+                            Text(current.content)
+                                .font(.custom("BalooBhaijaan2-Regular", size: 16))
+                                .lineSpacing(4)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+
+                            Divider()
                         }
-                        Map(initialPosition: .region(region(for: lat, lng))) {
-                            Annotation("", coordinate: CLLocationCoordinate2D(latitude: lat, longitude: lng)) {
-                                Image(systemName: "mappin.circle.fill")
-                                    .font(.title2)
-                                    .foregroundColor(.red)
-                                    .shadow(radius: 1)
+                    }
+
+                    // Reviewer Information
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Review Information")
+                            .font(.custom("BalooBhaijaan2-Bold", size: 20))
+                            .foregroundColor(Color("WineColor"))
+
+                        if !current.userName.isEmpty {
+                            LabeledInline(title: "Reviewed by:", value: current.userName)
+                        }
+
+                        LabeledInline(title: "Date:", value: formatDate(current.createdAt))
+
+                        Divider()
+                    }
+
+                    // Location Section
+                    if let location = current.location,
+                       !location.lat.isNaN,
+                       !location.lng.isNaN {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Winery Location")
+                                .font(.custom("BalooBhaijaan2-Bold", size: 20))
+                                .foregroundColor(Color("WineColor"))
+
+                            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                                Image(systemName: "location")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundColor(Color("WineColor"))
+
+                                Text(location.name.isEmpty
+                                         ? String(format: "Lat %.5f, Lng %.5f", location.lat, location.lng)
+                                         : location.name)
+                                    .font(.custom("BalooBhaijaan2-Medium", size: 16))
+                                    .foregroundColor(location.name.isEmpty ? .secondary : .primary)
+                                    .lineLimit(nil)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+
+                            // Map
+                            Map(initialPosition: .region(region(for: location.lat, location.lng))) {
+                                Annotation("", coordinate: CLLocationCoordinate2D(latitude: location.lat, longitude: location.lng)) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Color("WineColor"))
+                                            .frame(width: 32, height: 32)
+
+                                        Image(systemName: "wineglass.fill")
+                                            .font(.system(size: 16, weight: .bold))
+                                            .foregroundColor(.white)
+                                    }
+                                    .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
+                                }
+                            }
+                            .frame(height: 200)
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color("WineColor").opacity(0.2), lineWidth: 1)
+                            )
+
+                            // Open in Maps button
+                            Button {
+                                openInMaps(location: location)
+                            } label: {
+                                HStack {
+                                    Image(systemName: "map")
+                                    Text("Open in Maps")
+                                        .font(.custom("BalooBhaijaan2-Medium", size: 16))
+                                }
+                                .foregroundColor(Color("WineColor"))
+                                .padding(.vertical, 8)
                             }
                         }
-                        .frame(height: 200)
-                        .cornerRadius(12)
-
-                        
                     } else {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.white)
-                            .frame(height: 140)
-                            .overlay(Text("No location available")
-                                .font(.custom("BalooBhaijaan2-Medium", size: 16))
-                                .foregroundColor(.secondary))
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Location")
+                                .font(.custom("BalooBhaijaan2-Bold", size: 20))
+                                .foregroundColor(Color("WineColor"))
+
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.white)
+                                .frame(height: 100)
+                                .overlay(
+                                    VStack(spacing: 8) {
+                                        Image(systemName: "location.slash")
+                                            .font(.title2)
+                                            .foregroundColor(.secondary)
+                                        Text("No location available")
+                                            .font(.custom("BalooBhaijaan2-Medium", size: 16))
+                                            .foregroundColor(.secondary)
+                                    }
+                                )
+                        }
                     }
 
-                    Spacer().frame(height: 104)
+                    Spacer().frame(height: 120)
                 }
                 .padding(.horizontal, 24)
                 .padding(.top, 16)
             }
 
             // Bottom action buttons
-            VStack(spacing: 8) {
+            VStack(spacing: 12) {
                 Spacer()
 
                 Button {
                     showEdit = true
                     onEdit()
                 } label: {
-                    Text("Edit")
-                        .font(.custom("BalooBhaijaan2-Bold", size: 16))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, minHeight: 48)
-                        .background(Color("PrimaryPink"))
-                        .cornerRadius(8)
+                    HStack {
+                        Image(systemName: "pencil")
+                        Text("Edit Review")
+                            .font(.custom("BalooBhaijaan2-Bold", size: 16))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .background(Color("WineColor"))
+                    .cornerRadius(12)
                 }
 
                 Button(role: .destructive) {
                     showDeleteConfirm = true
                 } label: {
-                    Text("Delete")
-                        .font(.custom("BalooBhaijaan2-Bold", size: 16))
-                        .frame(maxWidth: .infinity, minHeight: 48)
-                        .foregroundColor(.red)
-                        .background(Color.clear)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.red, lineWidth: 1)
-                        )
+                    HStack {
+                        Image(systemName: "trash")
+                        Text("Delete Review")
+                            .font(.custom("BalooBhaijaan2-Bold", size: 16))
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .foregroundColor(.red)
+                    .background(Color.clear)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.red, lineWidth: 2)
+                    )
                 }
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 16)
         }
-        .navigationTitle("Report Details")
+        .navigationTitle("Wine Review")
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Delete report?", isPresented: $showDeleteConfirm) {
+        .alert("Delete review?", isPresented: $showDeleteConfirm) {
             Button("Delete", role: .destructive) { onDelete() }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("This action cannot be undone.")
+            Text("This wine review will be permanently deleted.")
         }
         .alert("Save failed", isPresented: .constant(savingError != nil)) {
             Button("OK") { savingError = nil }
@@ -144,43 +263,21 @@ struct ReportDetailsView: View {
             Text(savingError ?? "")
         }
         .navigationDestination(isPresented: $showEdit) {
-            EditReportView(report: current) { desc, name, phone, isLost, latOpt, lngOpt, imageUrl in
-                let newLat = latOpt ?? current.lat
-                let newLng = lngOpt ?? current.lng
-
+            EditReportView(report: current) { userName, wineryName, content, rating, location, imageUrl in
                 current = ReportModel(
-                    id:         current.id,
-                    userId:     current.userId,
-                    description: desc,                   // correct label
-                    name:       name,
-                    phone:      phone,
-                    imageUrl:   imageUrl ?? current.imageUrl,
-                    isLost:     isLost,
-                    location:   current.location,        // keep your existing string address if any
-                    lat:        newLat,
-                    lng:        newLng,
-                    createdAt:  current.createdAt
+                    id: current.id,
+                    userId: current.userId,
+                    userName: userName,
+                    wineryName: wineryName,
+                    content: content,
+                    imageUrl: imageUrl ?? current.imageUrl,
+                    rating: rating,
+                    createdAt: current.createdAt,
+                    location: location
                 )
-
-                Task { await reverseGeocode(lat: newLat, lng: newLng) }
                 showEdit = false
             }
         }
-        .task {
-            if let lat = safeLat, let lng = safeLng {
-                await reverseGeocode(lat: lat, lng: lng)
-            }
-        }
-    }
-
-
-    private var safeLat: Double? {
-        let lat = current.lat
-        return lat.isNaN ? nil : lat
-    }
-    private var safeLng: Double? {
-        let lng = current.lng
-        return lng.isNaN ? nil : lng
     }
 
     private func region(for lat: Double, _ lng: Double) -> MKCoordinateRegion {
@@ -190,28 +287,20 @@ struct ReportDetailsView: View {
         )
     }
 
-    @MainActor
-    private func reverseGeocode(lat: Double, lng: Double) async {
-        isGeocoding = true
-        defer { isGeocoding = false }
+    private func openInMaps(location: Location) {
+        let coordinate = CLLocationCoordinate2D(latitude: location.lat, longitude: location.lng)
+        let placemark = MKPlacemark(coordinate: coordinate)
+        let mapItem = MKMapItem(placemark: placemark)
+        mapItem.name = current.wineryName.isEmpty ? "Winery" : current.wineryName
+        mapItem.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeDriving])
+    }
 
-        let geocoder = CLGeocoder()
-        let location = CLLocation(latitude: lat, longitude: lng)
-
-        do {
-            let placemarks = try await geocoder.reverseGeocodeLocation(location)
-            if let pm = placemarks.first {
-                let parts = [pm.name, pm.thoroughfare, pm.subThoroughfare, pm.locality, pm.administrativeArea, pm.country]
-                self.addressText = parts.compactMap { $0 }
-                    .map { $0.trimmingCharacters(in: .whitespaces) }
-                    .filter { !$0.isEmpty }
-                    .joined(separator: ", ")
-            } else {
-                self.addressText = ""
-            }
-        } catch {
-            self.addressText = ""
-        }
+    private func formatDate(_ timestamp: Int64) -> String {
+        let date = Date(timeIntervalSince1970: TimeInterval(timestamp / 1000))
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }
 
@@ -221,13 +310,16 @@ private struct LabeledInline: View {
 
     var body: some View {
         if !value.isEmpty {
-            (Text(title + " ")
-                .font(.custom("BalooBhaijaan2-Bold", size: 16))
-             + Text(value)
-                .font(.custom("BalooBhaijaan2-Medium", size: 16)))
-            .foregroundColor(.primary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .lineLimit(nil)
+            HStack(alignment: .top, spacing: 8) {
+                Text(title)
+                    .font(.custom("BalooBhaijaan2-Bold", size: 16))
+                    .foregroundColor(Color("WineColor"))
+
+                Text(value)
+                    .font(.custom("BalooBhaijaan2-Medium", size: 16))
+                    .foregroundColor(.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
         }
     }
 }

@@ -2,6 +2,27 @@ import SwiftUI
 import MapKit
 import Shared
 
+
+extension Color {
+    init(hex: String) {
+        var hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3:
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6:
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8:
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (255, 0, 0, 0)
+        }
+        self.init(.sRGB, red: Double(r)/255, green: Double(g)/255, blue: Double(b)/255, opacity: Double(a)/255)
+    }
+}
+
 struct FeedView: View {
     @EnvironmentObject private var session: SessionStore
 
@@ -24,32 +45,60 @@ struct FeedView: View {
 
     var body: some View {
         ZStack {
-            Color("BackgroundGray").ignoresSafeArea()
+
+            Color(hex: "#DCC8B6").ignoresSafeArea()
 
             VStack(spacing: 16) {
                 Map(position: $cameraPosition) {
                     UserAnnotation()
 
                     ForEach(reports, id: \.id) { rpt in
-                        let lat = rpt.lat
-                        let lng = rpt.lng
-                        if !lat.isNaN, !lng.isNaN {
-                            let coord = CLLocationCoordinate2D(latitude: lat, longitude: lng)
+                        // Use location from Location object if available
+                        if let location = rpt.location,
+                           !location.lat.isNaN,
+                           !location.lng.isNaN {
+                            let coord = CLLocationCoordinate2D(latitude: location.lat, longitude: location.lng)
                             Annotation("", coordinate: coord) {
                                 VStack(spacing: 2) {
                                     NavigationLink {
                                         ReportDetailsView(report: rpt)
-                                            .navigationTitle("Report Details")
+                                            .navigationTitle("Wine Review")
                                             .navigationBarTitleDisplayMode(.inline)
                                     } label: {
-                                        Image(systemName: "mappin.circle.fill")
-                                            .font(.title)
-                                            .foregroundColor(.red)
-                                            .shadow(radius: 2)
+                                        // Wine-themed map pin
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color("WineColor"))
+                                                .frame(width: 32, height: 32)
+
+                                            Image(systemName: "wineglass.fill")
+                                                .font(.system(size: 16, weight: .bold))
+                                                .foregroundColor(.white)
+                                        }
+                                        .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
                                     }
-                                    Text(rpt.name.isEmpty ? (rpt.isLost ? "Lost" : "Found") : rpt.name)
-                                        .font(.caption2)
-                                        .lineLimit(1)
+
+                                    // Show winery name and rating
+                                    VStack(spacing: 1) {
+                                        Text(rpt.wineryName.isEmpty ? "Unknown Winery" : rpt.wineryName)
+                                            .font(.caption2)
+                                            .fontWeight(.semibold)
+                                            .lineLimit(1)
+                                            .foregroundColor(Color("WineColor"))
+
+                                        // Rating stars
+                                        HStack(spacing: 1) {
+                                            ForEach(0..<5) { index in
+                                                Image(systemName: index < rpt.rating ? "star.fill" : "star")
+                                                    .font(.system(size: 8))
+                                                    .foregroundColor(index < rpt.rating ? Color("StarColor") : Color.gray)
+                                            }
+                                        }
+                                    }
+                                    .padding(.horizontal, 4)
+                                    .padding(.vertical, 2)
+                                    .background(Color.white.opacity(0.9))
+                                    .cornerRadius(6)
                                 }
                             }
                         }
@@ -61,19 +110,23 @@ struct FeedView: View {
                 .padding(.bottom, 16)
                 .overlay(alignment: .topTrailing) {
                     HStack(spacing: 8) {
-                        if isLoadingReports { ProgressView().padding(8) }
+                        if isLoadingReports {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .padding(8)
+                        }
                         Button(action: reloadReports) {
                             Image(systemName: "arrow.clockwise")
                                 .foregroundColor(.white)
                                 .padding(10)
-                                .background(Color.gray.opacity(0.85))
+                                .background(Color("WineColor").opacity(0.85))
                                 .clipShape(Circle())
                         }
                         Button(action: locateMe) {
                             Image(systemName: "location.fill")
                                 .foregroundColor(.white)
                                 .padding(10)
-                                .background(Color.accentColor)
+                                .background(Color("WineColor"))
                                 .clipShape(Circle())
                         }
                     }
@@ -85,29 +138,56 @@ struct FeedView: View {
                     Button {
                         showNewReport = true
                     } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(width: 44, height: 44)
-                            .background(Color.darkGreen)
-                            .cornerRadius(8)
-                            .shadow(color: Color.black.opacity(0.2),
-                                    radius: 4, x: 0, y: 2)
+
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 16, weight: .bold))
+                            Text("Add Wine Review")
+                                .font(.custom("BalooBhaijaan2-Bold", size: 14))
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color("WineColor"))
+                        .cornerRadius(12)
+                        .shadow(color: Color.black.opacity(0.2),
+                                radius: 4, x: 0, y: 2)
+
                     }
                 }
 
-                if isLocating { ProgressView("Getting your location…") }
-                if let err = locationError {
-                    Text(err).font(.footnote).foregroundColor(.red).padding(.horizontal)
+                // Status messages
+                if isLocating {
+                    HStack {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("Getting your location…")
+                            .font(.custom("BalooBhaijaan2-Medium", size: 14))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 4)
                 }
+
+                if let err = locationError {
+                    Text("Location: \(err)")
+                        .font(.footnote)
+                        .foregroundColor(.red)
+                        .padding(.horizontal)
+                }
+
                 if let rerr = reportsError {
-                    Text(rerr).font(.footnote).foregroundColor(.red).padding(.horizontal)
+                    Text("Reviews: \(rerr)")
+                        .font(.footnote)
+                        .foregroundColor(.red)
+                        .padding(.horizontal)
                 }
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 16)
         }
-        .onAppear { session.currentTitle = "Feed" }
+        .onAppear {
+            session.currentTitle = "Wine Reviews"
+        }
         .task {
             if reports.isEmpty { reloadReports() }
             if userCoordinate == nil { locateMe() }
@@ -131,11 +211,7 @@ struct FeedView: View {
                     self.reports = []
                     return
                 }
-                if let arr = list {
-                    self.reports = arr
-                } else {
-                    self.reports = []
-                }
+                self.reports = list ?? []
             }
         }
     }

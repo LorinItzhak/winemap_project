@@ -17,7 +17,7 @@ fun LoadingAnimation(
     modifier: Modifier = Modifier,
     size: Dp = 200.dp,
 ) {
-    val compositionRes = R.raw.long_dog
+    val compositionRes = R.raw.wine_glass_loader
 
     var visible by remember { mutableStateOf(false) }
 
