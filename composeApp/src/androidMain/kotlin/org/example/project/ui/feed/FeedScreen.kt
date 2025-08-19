@@ -1,6 +1,5 @@
 package org.example.project.ui.feed
 
-
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -26,7 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -52,6 +53,13 @@ fun MapView(
     reports: List<ReportModel>,
     onReportClicked: (ReportModel) -> Unit
 ) {
+    LaunchedEffect(reports) {
+        println("🗺️ MapView: Got ${reports.size} reports")
+        reports.forEachIndexed { index, report ->
+            println("🗺️ Report $index: ${report.wineryName}")
+            println("🗺️   Location: ${report.location}")
+        }
+    }
     val context = LocalContext.current
 
     // Permission state + launcher
@@ -82,8 +90,11 @@ fun MapView(
         }
     }
 
-    val cameraState = rememberCameraPositionState()
 
+    val cameraState = rememberCameraPositionState {
+        // אתחול ממרכז ישראל
+        position = CameraPosition.fromLatLngZoom(LatLng(31.4, 34.8), 20.5f)
+    }
     // Fetch location once we have permission
     LaunchedEffect(hasLocationPermission.value) {
         if (hasLocationPermission.value) {
@@ -92,6 +103,22 @@ fun MapView(
                     val here = LatLng(loc.latitude, loc.longitude)
                     cameraState.move(CameraUpdateFactory.newLatLngZoom(here, 16f))
                 }
+        }
+    }
+    val markerPoints = remember(reports) {
+        reports.mapNotNull { rpt ->
+            val loc = rpt.location
+            if (loc != null && !loc.lat.isNaN() && !loc.lng.isNaN()) LatLng(loc.lat, loc.lng) else null
+        }
+    }
+
+// אם יש סיכות – נתאים את המצלמה לגבולות שלהן
+    LaunchedEffect(markerPoints) {
+        if (markerPoints.isNotEmpty()) {
+            val builder = LatLngBounds.Builder()
+            markerPoints.forEach { builder.include(it) }
+            val bounds = builder.build()
+            cameraState.move(CameraUpdateFactory.newLatLngBounds(bounds, 80))
         }
     }
 
@@ -112,18 +139,16 @@ fun MapView(
         reports.forEach { rpt ->
             val location = rpt.location
             if (location != null && !location.lat.isNaN() && !location.lng.isNaN()) {
-                val pos = LatLng(location.lat, location.lng)
+                println("🗺️ ✅ Creating marker for ${rpt.wineryName} at: ${location.lat}, ${location.lng}")
 
-                // Custom marker for wine reviews
                 MarkerInfoWindow(
-                    state = MarkerState(position = pos),
-                    onClick = {
-                        onReportClicked(rpt)
-                        true
-                    }
+                    state = MarkerState(position = LatLng(location.lat, location.lng)),
+                    onClick = { onReportClicked(rpt); true }
                 ) {
                     WineMarkerContent(report = rpt)
                 }
+            } else {
+                println("🗺️ ❌ Skipping ${rpt.wineryName} - invalid location: $location")
             }
         }
     }

@@ -215,6 +215,7 @@ class MainActivity : ComponentActivity() {
                                 pickedLocation = pickedLocation,
                                 onImagePicked = { /* ... */ },
                                 onPublish = { userName, wineryName, content, rating, imageUrl, location ->
+                                    println("🔥 MainActivity: Received location: $location")
                                     currentUid?.let { userId ->
                                         reportVm.saveReport(
                                             userId = userId,
