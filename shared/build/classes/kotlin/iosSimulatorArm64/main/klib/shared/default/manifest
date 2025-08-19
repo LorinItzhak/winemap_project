@@ -1,0 +1,10 @@
+abi_version=2.2.0
+builtins_platform=NATIVE
+compiler_version=2.2.0
+depends=stdlib co.touchlab\:stately-strict org.jetbrains.kotlin.native.platform.darwin org.jetbrains.kotlin.native.platform.Foundation co.touchlab\:stately-concurrency co.touchlab\:stately-concurrent-collections io.insert-koin\:koin-core org.jetbrains.kotlinx\:atomicfu-cinterop-interop org.jetbrains.kotlinx\:atomicfu org.jetbrains.kotlinx\:kotlinx-coroutines-core androidx.annotation\:annotation androidx.collection\:collection org.jetbrains.compose.runtime\:runtime io.insert-koin\:koin-compose io.insert-koin\:koin-test app.cash.sqldelight\:runtime app.cash.sqldelight\:sqldelight-async-extensions app.cash.sqldelight\:sqldelight-coroutines-extensions co.touchlab\:sqliter-driver-cinterop-sqlite3 co.touchlab\:sqliter-driver app.cash.sqldelight\:native-driver org.jetbrains.kotlinx\:kotlinx-serialization-core org.jetbrains.kotlinx\:kotlinx-datetime dev.gitlive\:firebase-common dev.gitlive\:firebase-app-cinterop-FirebaseCore dev.gitlive\:firebase-app org.jetbrains.kotlin.native.platform.UIKit dev.gitlive\:firebase-auth-cinterop-FirebaseAuth dev.gitlive\:firebase-auth dev.gitlive\:firebase-common-internal dev.gitlive\:firebase-firestore-cinterop-FirebaseFirestoreInternal dev.gitlive\:firebase-firestore-cinterop-FirebaseFirestore dev.gitlive\:firebase-firestore org.jetbrains.kotlinx\:kotlinx-serialization-json org.jetbrains.kotlin.native.platform.CoreLocation
+ir_signature_versions=1,2
+language_features=+MultiPlatformProjects
+metadata_version=1.4.1
+native_targets=ios_simulator_arm64
+short_name=shared
+unique_name=winemap_project\:shared

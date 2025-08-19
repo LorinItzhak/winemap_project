@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We use your location to center the map near you.</string>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>BalooBhaijaan2-ExtraBold.ttf</string>
+		<string>BalooBhaijaan2-Regular.ttf</string>
+		<string>BalooBhaijaan2-Medium.ttf</string>
+		<string>BalooBhaijaan2-SemiBold.ttf</string>
+		<string>BalooBhaijaan2-Bold.ttf</string>
+	</array>
+</dict>
+</plist>

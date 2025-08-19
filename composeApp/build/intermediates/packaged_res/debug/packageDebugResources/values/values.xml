@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">winemap_project</string>
+    <string name="gcm_defaultSenderId" translatable="false">862181805726</string>
+    <string name="google_api_key" translatable="false">AIzaSyCNB-NOd_3OVM4KGs-l9AEkYzArs-r8IhA</string>
+    <string name="google_app_id" translatable="false">1:862181805726:android:31443ff28d244e18cab58f</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyCNB-NOd_3OVM4KGs-l9AEkYzArs-r8IhA</string>
+    <string name="google_storage_bucket" translatable="false">winemapproject.firebasestorage.app</string>
+    <string name="project_id" translatable="false">winemapproject</string>
+</resources>
