@@ -5,9 +5,8 @@ import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.*
 import dev.gitlive.firebase.firestore.*
 import org.example.project.data.report.ReportModel
-
-
-
+import org.example.project.data.report.Location
+import kotlinx.datetime.Clock
 
 class RemoteFirebaseRepository : FirebaseRepository {
 
@@ -25,7 +24,7 @@ class RemoteFirebaseRepository : FirebaseRepository {
         Firebase.auth.currentUser?.uid
 
     override suspend fun saveUserProfile(uid: String, email: String) {
-        // שומר מסמך משתמש ב‑Firestore תחת collection “users”
+        // שומר מסמך משתמש ב‑Firestore תחת collection "users"
         Firebase.firestore
             .collection("users")
             .document(uid)
@@ -50,46 +49,42 @@ class RemoteFirebaseRepository : FirebaseRepository {
             ?: throw IllegalStateException("No signed-in user")
     }
 
-
     override suspend fun saveReport(
-        description: String,
-        name: String,
-        phone: String,
+        userId: String,
+        userName: String,
+        wineryName: String,
+        content: String,
         imageUrl: String,
-        isLost: Boolean,
-        location: String?,
-        lat: Double,
-        lng: Double
+        rating: Int,
+        location: Location?
     ) {
-        // ① get the current user’s UID
-        val userId = Firebase.auth.currentUser
-            ?.uid
-            ?: throw IllegalStateException("No authenticated user!")
+        // בניית המידע לשמירה
+        val reportData = mutableMapOf<String, Any>(
+            "userId" to userId,
+            "userName" to userName,
+            "wineryName" to wineryName,
+            "content" to content,
+            "imageUrl" to imageUrl,
+            "rating" to rating,
+            "createdAt" to Clock.System.now().toEpochMilliseconds()
+        )
 
-        // ② write a document that includes userId
+        // הוספת מיקום אם קיים
+        location?.let {
+            reportData["locationName"] = it.name
+            reportData["locationLat"] = it.lat
+            reportData["locationLng"] = it.lng
+        }
+
         Firebase.firestore
-            .collection("reports")
-            .add(
-                mapOf(
-                    "userId" to userId,
-                    "description" to description,
-                    "name"        to name,
-                    "phone"       to phone,
-                    "imageUrl"    to imageUrl,
-                    "isLost"      to isLost,
-                    "location"    to location,
-                    "lat"         to lat,
-                    "lng"         to lng,
-                )
-            )
+            .collection("posts")
+            .add(reportData)
     }
 
-    // shared RemoteFirebaseRepository
     override suspend fun getReportsForUser(userId: String): List<ReportModel> {
         val snapshot = Firebase.firestore
-            .collection("reports")
+            .collection("posts")
             .where { "userId" equalTo userId }
-            // .orderBy("createdAt", Direction.DESCENDING)   // TEMPORARILY DISABLE
             .get()
 
         val results = mutableListOf<ReportModel>()
@@ -100,32 +95,27 @@ class RemoteFirebaseRepository : FirebaseRepository {
             } catch (e: Exception) {
                 val raw = try { doc.data() as? Map<String, Any?> ?: emptyMap() } catch (_: Throwable) { emptyMap() }
                 results += ReportModel(
-                    id          = doc.id,
-                    userId      = raw["userId"]?.toString().orEmpty(),
-                    description = raw["description"]?.toString().orEmpty(),
-                    name        = raw["name"]?.toString().orEmpty(),
-                    phone       = raw["phone"]?.toString().orEmpty(),
-                    imageUrl    = raw["imageUrl"]?.toString().orEmpty(),
-                    isLost      = (raw["isLost"] as? Boolean) ?: false,
-                    location    = raw["location"]?.toString(),
-                    createdAt   = (raw["createdAt"] as? Number)?.toLong() ?: 0L
+                    id = doc.id,
+                    userId = raw["userId"]?.toString().orEmpty(),
+                    userName = raw["userName"]?.toString().orEmpty(),
+                    wineryName = raw["wineryName"]?.toString().orEmpty(),
+                    content = raw["content"]?.toString().orEmpty(),
+                    imageUrl = raw["imageUrl"]?.toString().orEmpty(),
+                    rating = (raw["rating"] as? Number)?.toInt() ?: 0,
+                    createdAt = (raw["createdAt"] as? Number)?.toLong() ?: 0L,
+                    location = createLocationFromRaw(raw)
                 )
             }
         }
 
-        // newest first on client
+        // החדשים ראשונים
         return results.sortedByDescending { it.createdAt }
     }
+
     override suspend fun getAllReports(): List<ReportModel> {
         val snapshot = Firebase.firestore
-            .collection("reports")
+            .collection("posts")
             .get()
-
-        fun anyToDouble(v: Any?): Double = when (v) {
-            is Number -> v.toDouble()
-            is String -> v.toDoubleOrNull() ?: Double.NaN
-            else      -> Double.NaN
-        }
 
         val results = mutableListOf<ReportModel>()
         for (doc in snapshot.documents) {
@@ -135,58 +125,72 @@ class RemoteFirebaseRepository : FirebaseRepository {
             } catch (_: Exception) {
                 val raw = try { doc.data() as? Map<String, Any?> ?: emptyMap() } catch (_: Throwable) { emptyMap() }
                 results += ReportModel(
-                    id          = doc.id,
-                    userId      = raw["userId"]?.toString().orEmpty(),
-                    description = raw["description"]?.toString().orEmpty(),
-                    name        = raw["name"]?.toString().orEmpty(),
-                    phone       = raw["phone"]?.toString().orEmpty(),
-                    imageUrl    = raw["imageUrl"]?.toString().orEmpty(),
-                    isLost      = (raw["isLost"] as? Boolean) ?: false,
-                    location    = raw["location"]?.toString(),
-                    createdAt   = (raw["createdAt"] as? Number)?.toLong() ?: 0L,
-                    lat         = anyToDouble(raw["lat"]),
-                    lng         = anyToDouble(raw["lng"])
+                    id = doc.id,
+                    userId = raw["userId"]?.toString().orEmpty(),
+                    userName = raw["userName"]?.toString().orEmpty(),
+                    wineryName = raw["wineryName"]?.toString().orEmpty(),
+                    content = raw["content"]?.toString().orEmpty(),
+                    imageUrl = raw["imageUrl"]?.toString().orEmpty(),
+                    rating = (raw["rating"] as? Number)?.toInt() ?: 0,
+                    createdAt = (raw["createdAt"] as? Number)?.toLong() ?: 0L,
+                    location = createLocationFromRaw(raw)
                 )
             }
         }
         return results.sortedByDescending { it.createdAt }
     }
-  override suspend fun updateReport(
+
+    override suspend fun updateReport(
         reportId: String,
-        description: String?,
-        name: String?,
-        phone: String?,
+        userName: String?,
+        wineryName: String?,
+        content: String?,
         imageUrl: String?,
-        isLost: Boolean?,
-        location: String?,
-        lat: Double?,
-        lng: Double?
+        rating: Int?,
+        location: Location?
     ) {
-        // build a partial update map (only fields you pass != null will be updated)
+        // בניית מפת עדכון חלקית (רק שדות שלא null יעודכנו)
         val data = mutableMapOf<String, Any>()
-        description?.let { data["description"] = it }
-        name?.let        { data["name"]        = it }
-        phone?.let       { data["phone"]       = it }
-        imageUrl?.let    { data["imageUrl"]    = it }
-        isLost?.let      { data["isLost"]      = it }
-        location?.let    { data["location"]    = it }
-        lat?.let {data["lat"] = it}
-        lng?.let {data["lng"] = it}
+        userName?.let { data["userName"] = it }
+        wineryName?.let { data["wineryName"] = it }
+        content?.let { data["content"] = it }
+        imageUrl?.let { data["imageUrl"] = it }
+        rating?.let { data["rating"] = it }
 
+        location?.let {
+            data["locationName"] = it.name
+            data["locationLat"] = it.lat
+            data["locationLng"] = it.lng
+        }
 
-      if (data.isEmpty()) return // nothing to update
+        if (data.isEmpty()) return // אין מה לעדכן
 
         Firebase.firestore
-            .collection("reports")
+            .collection("posts")
             .document(reportId)
             .update(data)
     }
 
     override suspend fun deleteReport(reportId: String) {
         Firebase.firestore
-            .collection("reports")
+            .collection("posts")
             .document(reportId)
             .delete()
     }
 
+    private fun createLocationFromRaw(raw: Map<String, Any?>): Location? {
+        val name = raw["locationName"]?.toString()
+        val lat = anyToDouble(raw["locationLat"])
+        val lng = anyToDouble(raw["locationLng"])
+
+        return if (!name.isNullOrEmpty() && !lat.isNaN() && !lng.isNaN()) {
+            Location(lat = lat, lng = lng, name = name)
+        } else null
+    }
+
+    private fun anyToDouble(v: Any?): Double = when (v) {
+        is Number -> v.toDouble()
+        is String -> v.toDoubleOrNull() ?: Double.NaN
+        else -> Double.NaN
+    }
 }

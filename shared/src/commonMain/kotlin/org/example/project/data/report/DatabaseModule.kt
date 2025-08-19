@@ -26,10 +26,12 @@ class LocalReportDataSource(
     private val io: CoroutineDispatcher = Dispatchers.Default
 ) {
     private val q get() = db.reportQueries
+
     fun observeAll(): Flow<List<Reports>> =
         q.selectAll().asFlow().mapToList(io)
 
     fun getAll(): List<Reports> = q.selectAll().executeAsList()
+
     fun getByUser(userId: String): List<Reports> =
         q.selectByUser(userId).executeAsList()
 
@@ -37,21 +39,20 @@ class LocalReportDataSource(
         q.upsertReport(
             id = model.id,
             userId = model.userId,
-            description = model.description,
-            name = model.name,
-            phone = model.phone,
+            userName = model.userName,
+            wineryName = model.wineryName,
+            content = model.content,
             imageUrl = model.imageUrl,
-            isLost = model.isLost,
-            location = model.location,
-            lat = model.lat,
-            lng = model.lng,
-            createdAt = model.createdAt
+            rating = model.rating.toLong(),
+            createdAt = model.createdAt,
+            locationName = model.location?.name,
+            locationLat = model.location?.lat,
+            locationLng = model.location?.lng
         )
     }
 
     fun replaceAllForUser(userId: String, items: List<ReportModel>) {
         db.transaction {
-
             items.forEach { upsert(it) }
         }
     }

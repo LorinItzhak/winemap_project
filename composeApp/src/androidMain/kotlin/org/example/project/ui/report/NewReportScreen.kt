@@ -1,5 +1,6 @@
 package org.example.project.ui.report
 
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,10 +32,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.rememberAsyncImagePainter
 import org.example.project.CloudinaryUploader
+import org.example.project.data.report.Location
 
 private val balooBhaijaan2Family = FontFamily(
     Font(R.font.baloobhaijaan2_regular,   FontWeight.Normal),
@@ -44,18 +48,22 @@ private val balooBhaijaan2Family = FontFamily(
     Font(R.font.baloobhaijaan2_extrabold, FontWeight.ExtraBold)
 )
 
+private val WineColor = Color(0xFF8B0000)
+private val LightWineColor = Color(0xFFA52A2A)
+private val StarColor = Color(0xFFFFD700)
+private val BgGray = Color(0xFFF0F0F0)
+
 @Composable
 fun NewReportScreen(
-    pickedLocation: Pair<Double, Double>?,
+    pickedLocation: Location?,
     onImagePicked: (Uri) -> Unit = {},
     onPublish: (
-        description: String,
-        name: String,
-        phone: String,
-        isLost: Boolean,
+        userName: String,
+        wineryName: String,
+        content: String,
+        rating: Int,
         imageUrl: String,
-        lat: Double,
-        lng: Double
+        location: Location?
     ) -> Unit
 ) {
     val context = LocalContext.current
@@ -64,7 +72,7 @@ fun NewReportScreen(
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var uploading by remember { mutableStateOf(false) }
 
-    // NEW: error message
+    // Error message
     var errorText by remember { mutableStateOf<String?>(null) }
 
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -73,7 +81,7 @@ fun NewReportScreen(
         uri?.let {
             selectedImageUri = it
             onImagePicked(it)
-            errorText = null // clear error if user fixed it
+            errorText = null
         }
     }
 
@@ -99,18 +107,19 @@ fun NewReportScreen(
             ?: error("Couldn't create URI for camera image")
     }
 
-    var isLost by remember { mutableStateOf(true) }
-    var description by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
+    // Form fields
+    var userName by remember { mutableStateOf("") }
+    var wineryName by remember { mutableStateOf("") }
+    var content by remember { mutableStateOf("") }
+    var rating by remember { mutableStateOf(0) }
 
     var showPicker by remember { mutableStateOf(false) }
-    var currentPicked by remember(pickedLocation) { mutableStateOf(pickedLocation) }
+    var currentPickedLocation by remember(pickedLocation) { mutableStateOf(pickedLocation) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF0F0F0))
+            .background(BgGray)
             .padding(horizontal = 24.dp, vertical = 16.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -122,63 +131,26 @@ fun NewReportScreen(
                 .navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Lost / Found toggle (unchanged) …
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Button(
-                    onClick = { isLost = true },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isLost) Color(0xFFF69092) else Color(0xFFFEB0B2),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        "Lost",
-                        fontFamily = balooBhaijaan2Family,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                    )
-                }
+            // Title
+            Text(
+                text = "New Wine Review",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontFamily = balooBhaijaan2Family,
+                    fontWeight = FontWeight.Bold,
+                    color = WineColor
+                ),
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
 
-                Button(
-                    onClick = { isLost = false },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (!isLost) Color(0xFFF69092) else Color(0xFFFEB0B2),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Text(
-                        "Found",
-                        fontFamily = balooBhaijaan2Family,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Photo picker (unchanged) …
+            // Photo picker
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFF0F0F0))
-                    .border(1.dp, Color.Gray, RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.BottomEnd
+                    .background(Color.White)
+                    .border(2.dp, WineColor.copy(alpha = 0.3f), RoundedCornerShape(8.dp)),
+                contentAlignment = Alignment.Center
             ) {
                 selectedImageUri?.let { uri ->
                     Image(
@@ -189,140 +161,244 @@ fun NewReportScreen(
                             .clip(RoundedCornerShape(8.dp)),
                         contentScale = ContentScale.Crop
                     )
+                } ?: run {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = null,
+                            tint = Color.Gray,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Text(
+                            "Add wine photo",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                 }
 
+                // Add photo button
                 SmallFloatingActionButton(
                     onClick = { showDialog = true },
-                    modifier = Modifier.padding(12.dp),
-                    containerColor = Color(0xFF90D1D8),
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(12.dp),
+                    containerColor = WineColor,
                     contentColor = Color.White
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "New report")
+                    Icon(Icons.Default.Add, contentDescription = "Add photo")
                 }
             }
 
             if (showDialog) {
                 AlertDialog(
                     onDismissRequest = { showDialog = false },
-                    title = { Text("Select an image source") },
-                    text = { Text("New photo or selection from the gallery?") },
+                    title = { Text("Select photo source") },
+                    text = { Text("Take a new photo or select from gallery?") },
                     confirmButton = {
                         TextButton(onClick = {
                             galleryLauncher.launch("image/*")
                             showDialog = false
-                        }) { Text("gallery") }
+                        }) { Text("Gallery") }
                     },
                     dismissButton = {
                         TextButton(onClick = {
                             cameraUri = createImageUri()
                             cameraLauncher.launch(cameraUri!!)
                             showDialog = false
-                        }) { Text("photo") }
+                        }) { Text("Camera") }
                     }
                 )
             }
 
             Spacer(Modifier.height(16.dp))
 
+            // Your name field
             OutlinedTextField(
-                value = description,
+                value = userName,
                 onValueChange = {
-                    description = it
+                    userName = it
                     if (it.isNotBlank()) errorText = null
                 },
-                label = { Text("Description") },
-                placeholder = { Text("Enter a description about the dog") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp),
-                maxLines = 5,
-                singleLine = false
+                label = { Text("Your name") },
+                placeholder = { Text("Enter your name") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = WineColor,
+                    focusedLabelColor = WineColor
+                )
             )
 
             Spacer(Modifier.height(8.dp))
 
+            // Winery name field
             OutlinedTextField(
-                value = name,
+                value = wineryName,
                 onValueChange = {
-                    name = it
+                    wineryName = it
                     if (it.isNotBlank()) errorText = null
                 },
-                label = { Text("Name") },
-                placeholder = { Text("Add your name here") },
+                label = { Text("Winery name") },
+                placeholder = { Text("Name of the winery") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = WineColor,
+                    focusedLabelColor = WineColor
+                )
+            )
+
+            Spacer(Modifier.height(8.dp))
+
+            // Review content field
+            OutlinedTextField(
+                value = content,
+                onValueChange = {
+                    content = it
+                    if (it.isNotBlank()) errorText = null
+                },
+                label = { Text("Your review") },
+                placeholder = { Text("Share your wine tasting experience...") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
+                maxLines = 5,
+                singleLine = false,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = WineColor,
+                    focusedLabelColor = WineColor
+                )
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            // Rating section
+            Text(
+                text = "Rate this wine",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = balooBhaijaan2Family,
+                    fontWeight = FontWeight.Bold,
+                    color = WineColor
+                ),
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(8.dp))
 
-            OutlinedTextField(
-                value = phone,
-                onValueChange = {
-                    phone = it
-                    if (it.isNotBlank()) errorText = null
-                },
-                label = { Text("Phone") },
-                placeholder = { Text("+972.....") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
-            )
+            // Rating stars
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                repeat(5) { index ->
+                    val starIndex = index + 1
+                    IconButton(
+                        onClick = {
+                            rating = starIndex
+                            errorText = null
+                        },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (starIndex <= rating) Icons.Filled.Star else Icons.Outlined.Star,
+                            contentDescription = "Rate $starIndex stars",
+                            tint = if (starIndex <= rating) StarColor else Color.Gray,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+            }
+
+            if (rating > 0) {
+                Text(
+                    text = "$rating/5 stars",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = Color.Gray
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
             Spacer(Modifier.height(12.dp))
 
+            // Location button
             OutlinedButton(
                 onClick = { showPicker = true },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(44.dp),
-                shape  = RoundedCornerShape(8.dp),
-                border = BorderStroke(2.dp, Color.White),
+                    .height(48.dp),
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(2.dp, WineColor),
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = Color.White.copy(alpha = 0.3f),
-                    contentColor   = Color(0xFFFFC0C0)
+                    contentColor = WineColor
                 )
-            ) { Text("📍  Add location") }
+            ) {
+                Text(
+                    if (currentPickedLocation == null) "📍 Add winery location" else "📍 Change location",
+                    fontFamily = balooBhaijaan2Family,
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
-            currentPicked?.let { (lat, lng) ->
-                Text("📍 Location set ($lat, $lng)")
+            currentPickedLocation?.let { location ->
+                Text(
+                    "📍 ${location.name}",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = WineColor
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
+                )
             }
 
             if (showPicker) {
                 MapPickerDialog(
                     onDismiss = { showPicker = false },
-                    onPicked  = { lat, lng ->
-                        currentPicked = lat to lng
+                    onPicked = { lat, lng ->
+                        // Create Location object with geocoded address
+                        currentPickedLocation = Location(
+                            lat = lat,
+                            lng = lng,
+                            name = "Selected location" // You can geocode this later
+                        )
                         errorText = null
+                        showPicker = false
                     }
                 )
             }
 
             Spacer(Modifier.height(12.dp))
 
-            // NEW: error label
+            // Error message
             if (errorText != null) {
                 Text(
                     errorText!!,
-                    color = Color(0xFFD32F2F),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(8.dp))
             }
 
+            // Publish button
             Button(
                 onClick = {
-                    // VALIDATION
-                    val missing =
-                        description.isBlank() ||
-                                name.isBlank() ||
-                                phone.isBlank() ||
-                                selectedImageUri == null ||
-                                currentPicked == null
+                    // Validation
+                    val missing = userName.isBlank() ||
+                            wineryName.isBlank() ||
+                            content.isBlank() ||
+                            rating == 0 ||
+                            selectedImageUri == null
 
                     if (missing) {
-                        errorText = "Please fill all fields, add a photo, and set a location."
+                        errorText = "Please fill all fields, add a photo, and rate the wine."
                         return@Button
                     }
 
-                    val (lat, lng) = currentPicked!!
                     selectedImageUri?.let { uri ->
                         uploading = true
                         errorText = null
@@ -330,13 +406,12 @@ fun NewReportScreen(
                             uploading = false
                             url?.let { imageUrl ->
                                 onPublish(
-                                    description,
-                                    name,
-                                    phone,
-                                    isLost,
+                                    userName,
+                                    wineryName,
+                                    content,
+                                    rating,
                                     imageUrl,
-                                    lat,
-                                    lng
+                                    currentPickedLocation
                                 )
                             } ?: run {
                                 errorText = "Image upload failed. Please try again."
@@ -346,10 +421,10 @@ fun NewReportScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(44.dp),
-                shape = RoundedCornerShape(8.dp),
+                    .height(52.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFC0C0),
+                    containerColor = WineColor,
                     contentColor = Color.White
                 )
             ) {
@@ -361,12 +436,15 @@ fun NewReportScreen(
                     )
                 } else {
                     Text(
-                        "Publish Report",
+                        "Publish Wine Review",
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = balooBhaijaan2Family
                     )
                 }
             }
+
+            Spacer(Modifier.height(16.dp))
         }
     }
 }

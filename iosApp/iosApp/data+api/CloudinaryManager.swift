@@ -4,9 +4,9 @@ final class CloudinaryManager {
   static let shared: CLDCloudinary = {
     // replace with your real values:
     let config = CLDConfiguration(
-      cloudName: "duk7ujnww",
-      apiKey:    "344296978824576",
-      apiSecret: "WI-D8ORFmsk1cJWP2aGuiu6mPWk"
+      cloudName: "detpngf0i",
+      apiKey:    "859679673437186",
+      apiSecret: "mupstOb71Ci2Yg3C3_kI8tRD-CA"
     )
     return CLDCloudinary(configuration: config)
   }()

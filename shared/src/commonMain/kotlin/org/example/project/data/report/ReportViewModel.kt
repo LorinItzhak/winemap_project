@@ -20,19 +20,18 @@ class ReportViewModel(
     )
 
     fun saveReport(
-        description: String,
-        name: String,
-        phone: String,
+        userId: String,
+        userName: String,
+        wineryName: String,
+        content: String,
         imageUrl: String,
-        isLost: Boolean,
-        location: String? = null,
-        lat: Double,
-        lng: Double
+        rating: Int,
+        location: Location? = null
     ) {
         scope.launch {
             _uiState.value = ReportUiState.Saving
             try {
-                repo.saveReport(description, name, phone, imageUrl, isLost, location, lat, lng)
+                repo.saveReport(userId, userName, wineryName, content, imageUrl, rating, location)
                 _uiState.value = ReportUiState.SaveSuccess
             } catch (e: Throwable) {
                 _uiState.value = ReportUiState.SaveError(e)
@@ -63,21 +62,20 @@ class ReportViewModel(
             }
         }
     }
+
     fun updateReport(
         reportId: String,
-        description: String? = null,
-        name: String? = null,
-        phone: String? = null,
+        userName: String? = null,
+        wineryName: String? = null,
+        content: String? = null,
         imageUrl: String? = null,
-        isLost: Boolean? = null,
-        location: String? = null,
-        lat: Double? = null,
-        lng: Double? = null
+        rating: Int? = null,
+        location: Location? = null
     ) {
         scope.launch {
             _uiState.value = ReportUiState.Saving
             try {
-                repo.updateReport(reportId, description, name, phone, imageUrl, isLost, location, lat, lng)
+                repo.updateReport(reportId, userName, wineryName, content, imageUrl, rating, location)
                 _uiState.value = ReportUiState.UpdateSuccess
             } catch (e: Throwable) {
                 _uiState.value = ReportUiState.UpdateError(e)

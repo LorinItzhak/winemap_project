@@ -93,7 +93,8 @@ struct ProfileView: View {
                 .foregroundColor(.white)
                 .frame(maxHeight:44)
                 .padding(.horizontal, 24)
-                .background(mainColor)
+
+                .background(Color.white)
                 .cornerRadius(8)
 
                 Spacer()
@@ -110,7 +111,9 @@ struct ProfileView: View {
                 .foregroundColor(.white)
                 .frame(maxHeight:44)
                 .padding(.horizontal, 24)
-                .background(mainColor)
+
+                .background(Color.white)
+
                 .cornerRadius(8)
 
             } else {
@@ -121,7 +124,9 @@ struct ProfileView: View {
                 .foregroundColor(.white)
                 .frame(maxHeight:44)
                 .padding(.horizontal, 24)
-                .background(mainColor)
+
+                .background(Color.white)
+
                 .cornerRadius(8)
 
                 Spacer()
@@ -133,7 +138,9 @@ struct ProfileView: View {
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(.white)
                         .frame(width: 44, height: 44)
-                        .background(mainColor)
+
+                        .background(Color.white)
+
                         .cornerRadius(8)
                         .shadow(color: Color.black.opacity(0.2),
                                 radius: 4, x: 0, y: 2)
