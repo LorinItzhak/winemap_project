@@ -1,52 +1,51 @@
 import SwiftUI
 import FirebaseAuth
 
-
 struct ProfileView: View {
     @EnvironmentObject private var session: SessionStore
     @StateObject private var vm = ProfileViewModel()
 
-
-    @State private var isEditing      = false
-    @State private var newPassword    = ""
+    @State private var isEditing       = false
+    @State private var newPassword     = ""
     @State private var confirmPassword = ""
+
+
+    private let mainColor   = Color(red: 107/255, green: 91/255, blue: 115/255)    //  (0xFF6B5B73)
+    private let backgroundColor = Color(red: 220/255, green: 200/255, blue: 182/255)
 
     var body: some View {
         VStack(spacing: 32) {
             Spacer()
 
-            // — Read-only e-mail field —
             if session.email.isEmpty {
                 Text("No email available")
                     .font(.caption)
                     .foregroundColor(.secondary)
             } else {
                 FloatingLabelTextField(
-                    text:        .constant(session.email),
-                    label:       "Email",
+                    text: .constant(session.email),
+                    label: "Email",
                     placeholder: "Email"
                 )
-                .disabled(true)
-                .opacity(0.6)
-                .padding(.horizontal, 24)
+                    .disabled(true)
+                    .opacity(0.6)
+                    .padding(.horizontal, 24)
             }
 
-            // — Password fields only in edit mode —
             if isEditing {
                 VStack(spacing: 16) {
                     FloatingLabelTextField(
-                        text:        $newPassword,
-                        label:       "New Password",
+                        text: $newPassword,
+                        label: "New Password",
                         placeholder: "New Password"
-                    )
-                    .padding(.horizontal, 24)
+                    ).padding(.horizontal, 24)
 
                     FloatingLabelTextField(
-                        text:        $confirmPassword,
-                        label:       "Confirm New Password",
+                        text: $confirmPassword,
+                        label: "Confirm New Password",
                         placeholder: "Confirm New Password"
-                    )
-                    .padding(.horizontal, 24)
+                    ).padding(.horizontal, 24)
+
                     if !vm.errorMessage.isEmpty {
                         Text(vm.errorMessage)
                             .foregroundColor(.red)
@@ -59,31 +58,30 @@ struct ProfileView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(white: 0.95))
+        .background(backgroundColor)
         .onAppear { session.currentTitle = "Profile" }
         .overlay(bottomButtons, alignment: .bottom)
         .onReceive(vm.$isLoading.combineLatest(vm.$errorMessage)) { isLoading, error in
-                    if !isLoading && error.isEmpty && isEditing {
-                        withAnimation {
-                            isEditing = false
-                            newPassword = ""
-                            confirmPassword = ""
-                        }
-                    }
+            if !isLoading && error.isEmpty && isEditing {
+                withAnimation {
+                    isEditing = false
+                    newPassword = ""
+                    confirmPassword = ""
                 }
+            }
+        }
         .overlay {
-                    if vm.isLoading || session.isLoading {
-                        Color.black.opacity(0.3).ignoresSafeArea()
-                        DogLoaderView()
-                    }
-                }
+            if vm.isLoading || session.isLoading {
+                Color.black.opacity(0.3).ignoresSafeArea()
+                WineLoaderView()
+            }
+        }
     }
 
     @ViewBuilder
     private var bottomButtons: some View {
         HStack {
             if isEditing {
-                // — CANCEL —
                 Button("Cancel") {
                     withAnimation {
                         isEditing = false
@@ -95,6 +93,7 @@ struct ProfileView: View {
                 .foregroundColor(.white)
                 .frame(maxHeight:44)
                 .padding(.horizontal, 24)
+
                 .background(Color.white)
                 .cornerRadius(8)
 
@@ -102,21 +101,19 @@ struct ProfileView: View {
 
                 Button("Save") {
                     guard !newPassword.isEmpty, newPassword == confirmPassword else {
-                                            vm.errorMessage = "Passwords must match"
-                                            return
-                                        }
+                        vm.errorMessage = "Passwords must match"
+                        return
+                    }
                     vm.changePassword(to: newPassword)
-
-//                    withAnimation {
-//                        isEditing = false
-//                    }
                 }
                 .disabled(vm.isLoading)
                 .font(.custom("BalooBhaijaan2-Bold", size: 16))
                 .foregroundColor(.white)
                 .frame(maxHeight:44)
                 .padding(.horizontal, 24)
+
                 .background(Color.white)
+
                 .cornerRadius(8)
 
             } else {
@@ -127,7 +124,9 @@ struct ProfileView: View {
                 .foregroundColor(.white)
                 .frame(maxHeight:44)
                 .padding(.horizontal, 24)
+
                 .background(Color.white)
+
                 .cornerRadius(8)
 
                 Spacer()
@@ -139,7 +138,9 @@ struct ProfileView: View {
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(.white)
                         .frame(width: 44, height: 44)
+
                         .background(Color.white)
+
                         .cornerRadius(8)
                         .shadow(color: Color.black.opacity(0.2),
                                 radius: 4, x: 0, y: 2)
@@ -147,7 +148,7 @@ struct ProfileView: View {
             }
         }
         .padding(.horizontal, 24)
-        .padding(.bottom, 16)   // sits 16pts above the tab bar
+        .padding(.bottom, 16)
     }
 }
 

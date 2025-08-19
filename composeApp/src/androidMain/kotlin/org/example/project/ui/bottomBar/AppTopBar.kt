@@ -61,7 +61,7 @@ fun AppTopBar(
         },
         modifier = Modifier
             .fillMaxWidth()
-            .bottomBorder(width = 2.dp, color = Color(0xFF90D1D8))
+            .bottomBorder(width = 2.dp, color = Color(0xFF6B5B73))
 
     )
 }

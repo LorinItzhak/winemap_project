@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.example.project.R
 import org.example.project.ui.components.LoadingAnimation
+import androidx.compose.ui.tooling.preview.Preview
+
 
 private val balooBhaijaan2Family = FontFamily(
     Font(R.font.baloobhaijaan2_regular,   FontWeight.Normal),
@@ -42,15 +44,15 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color(0xFFF0F0F0))
+            .background(color = Color(0xFFDCC8B6))
             .padding(24.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(Modifier.height(80.dp))
         Text(
-            "join us!",
-            color = Color(0xFFDA90D1D8),
+            "Sign Up",
+            color = Color(0xFF6B5B73),
             fontFamily = balooBhaijaan2Family,
             fontWeight = FontWeight.ExtraBold,
             fontSize = 32.sp,
@@ -111,7 +113,7 @@ fun RegisterScreen(
                 .height(44.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFFC0C0),
+                containerColor = Color(0xFF6B5B73),
                 contentColor = Color.White
             )
         ) {
@@ -160,3 +162,15 @@ fun RegisterScreen(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun RegisterScreenPreview() {
+    RegisterScreen(
+        isLoading = false,
+        errorMessage = null,
+        onRegister = { _, _ -> },
+        onNavigateToLogin = {}
+    )
+}
+

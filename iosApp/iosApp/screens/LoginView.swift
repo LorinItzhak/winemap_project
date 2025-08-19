@@ -2,35 +2,33 @@ import SwiftUI
 import FirebaseAuth
 import FirebaseFirestore
 
-
 struct LoginView: View {
     @State private var email    = ""
     @State private var password = ""
-    
+
     @State private var errorMessage = ""
     @State private var isLoading = false
-    
 
     @State private var isLoggedIn = false
-
 
     var body: some View {
         NavigationStack {
             NavigationLink(
                 destination: FeedView(),
-                            isActive: $isLoggedIn
-                        ) {
-                            EmptyView()
-                        }
+                isActive: $isLoggedIn
+            ) { EmptyView() }
+
             ZStack {
-                Color("BackgroundGray")
+
+                Color(red: 0.86, green: 0.78, blue: 0.71)
                     .ignoresSafeArea()
 
                 VStack {
                     VStack(spacing: 128) {
                         Text("welcome back!")
                             .font(.custom("BalooBhaijaan2-ExtraBold", size: 32))
-                            .foregroundColor(Color.darkGreen)
+
+                            .foregroundColor(Color(red: 0.42, green: 0.36, blue: 0.45))
 
                         VStack(spacing: 16) {
                             FloatingLabelTextField(
@@ -38,8 +36,8 @@ struct LoginView: View {
                                 label: "email",
                                 placeholder: "enter email"
                             )
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
+                                .keyboardType(.emailAddress)
+                                .autocapitalization(.none)
 
                             FloatingLabelSecureField(
                                 text: $password,
@@ -56,7 +54,6 @@ struct LoginView: View {
                         Button {
                             Task {
                                 do {
-                                    // 1. מחוברים עם מייל וסיסמה
                                     isLoading = true
                                     let result = try await Auth.auth()
                                         .signIn(withEmail: email, password: password)
@@ -64,7 +61,6 @@ struct LoginView: View {
                                     print("logged in:", user.uid)
                                     isLoading = false
                                     isLoggedIn = true
-                                    // כאן אפשר להתריע ל‑ViewModel או לשמור ב‑@AppStorage
                                 } catch {
                                     print("login error:", error.localizedDescription)
                                     isLoading = false
@@ -75,11 +71,13 @@ struct LoginView: View {
                             Text("log in")
                                 .font(.custom("BalooBhaijaan2-Bold", size: 16))
                                 .frame(maxWidth: .infinity, minHeight: 44)
-                                .background(Color.primaryPink)
+
+                                .background(Color(red: 0.42, green: 0.36, blue: 0.45))
                                 .foregroundColor(.white)
                                 .cornerRadius(8)
-                        }.disabled(isLoading || password.isEmpty || email.isEmpty)
-                        
+                        }
+                        .disabled(isLoading || password.isEmpty || email.isEmpty)
+
                         if !errorMessage.isEmpty {
                             Text(errorMessage)
                                 .foregroundColor(.red)
@@ -99,10 +97,10 @@ struct LoginView: View {
                 }
                 .padding(.horizontal, 24)
                 .frame(maxHeight: .infinity)
-                
+
                 if isLoading {
                     Color.black.opacity(0.3).ignoresSafeArea()
-                    DogLoaderView()
+                    WineLoaderView()
                 }
             }
         }
