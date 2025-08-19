@@ -11,36 +11,36 @@ struct TopBar<Content: View>: View {
         title: String,
         onSignOut: @escaping () -> Void,
         @ViewBuilder content: () -> Content
-        
-        
+
+
     ) {
         self.title = title
         self.onSignOut = onSignOut
         self.content = content()
-        
-        // MARK: – UINavigationBarAppearance configuration
-                let navAppearance = UINavigationBarAppearance()
-                navAppearance.configureWithOpaqueBackground()
-                navAppearance.backgroundColor = UIColor.white.withAlphaComponent(0.3)
-                navAppearance.titleTextAttributes = [
-                    .foregroundColor: UIColor.darkGray
-                ]
-                navAppearance.largeTitleTextAttributes = [
-                    .foregroundColor: UIColor.darkGray
-                ]
-                navAppearance.shadowColor = UIColor(
-                    red:   144.0/255.0,
-                    green: 209.0/255.0,
-                    blue:  216.0/255.0,
-                    alpha: 1.0
-                )
-                navAppearance.shadowImage = nil
 
-                // החלפה גלובלית
-                UINavigationBar.appearance().standardAppearance = navAppearance
-                if #available(iOS 15.0, *) {
-                    UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
-                }
+        // MARK: – UINavigationBarAppearance configuration
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.configureWithOpaqueBackground()
+        navAppearance.backgroundColor = UIColor.white.withAlphaComponent(0.3)
+        navAppearance.titleTextAttributes = [
+            .foregroundColor: UIColor.darkGray
+        ]
+        navAppearance.largeTitleTextAttributes = [
+            .foregroundColor: UIColor.darkGray
+        ]
+        navAppearance.shadowColor = UIColor(
+            red:   144.0/255.0,
+            green: 209.0/255.0,
+            blue:  216.0/255.0,
+            alpha: 1.0
+        )
+        navAppearance.shadowImage = nil
+
+
+        UINavigationBar.appearance().standardAppearance = navAppearance
+        if #available(iOS 15.0, *) {
+            UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
+        }
     }
 
     var body: some View {

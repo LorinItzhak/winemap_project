@@ -4,13 +4,13 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,12 +37,12 @@ import org.example.project.data.report.ReportModel
 import org.example.project.location.getLocation
 
 @Composable
-fun MapView( reports: List<ReportModel>,
-             onReportClicked: (ReportModel) -> Unit
+fun MapView(
+    reports: List<ReportModel>,
+    onReportClicked: (ReportModel) -> Unit
 ) {
     val context = LocalContext.current
 
-    // Permission state + launcher
     val hasLocationPermission = remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -71,15 +71,12 @@ fun MapView( reports: List<ReportModel>,
     }
 
     val cameraState = rememberCameraPositionState()
-    val userLatLng = remember { mutableStateOf<LatLng?>(null) }
-
-    // Fetch last location once we have permission
     LaunchedEffect(hasLocationPermission.value) {
         if (hasLocationPermission.value) {
             runCatching { withContext(Dispatchers.IO) { getLocation() } }
                 .onSuccess { loc ->
                     val here = LatLng(loc.latitude, loc.longitude)
-                    cameraState.move(CameraUpdateFactory.newLatLngZoom(here, 16f))
+                    cameraState.move(CameraUpdateFactory.newLatLngZoom(here, 10f))
                 }
         }
     }
@@ -89,16 +86,12 @@ fun MapView( reports: List<ReportModel>,
             .fillMaxSize()
             .padding(top = 32.dp, bottom = 80.dp),
         cameraPositionState = cameraState,
-        properties = MapProperties(
-            isMyLocationEnabled = hasLocationPermission.value
-        ),
+        properties = MapProperties(isMyLocationEnabled = hasLocationPermission.value),
         uiSettings = MapUiSettings(
             myLocationButtonEnabled = hasLocationPermission.value,
             zoomControlsEnabled = true,
         )
-    )
-    {
-        // 🔴 Pins for ALL reports that have coordinates
+    ) {
         reports.forEach { rpt ->
             val lat = rpt.lat
             val lng = rpt.lng
@@ -106,19 +99,17 @@ fun MapView( reports: List<ReportModel>,
                 val pos = LatLng(lat, lng)
                 Marker(
                     state = MarkerState(position = pos),
-                    title = if (rpt.name.isNotBlank()) rpt.name
-                    else if (rpt.isLost) "Lost" else "Found",
+                    title = if (rpt.name.isNotBlank()) rpt.name else "Unnamed Winery",
                     snippet = rpt.description.take(60),
                     onClick = {
-                        onReportClicked(rpt)   // navigate to details
-                        true                   // consume click
+                        onReportClicked(rpt)
+                        true
                     }
                 )
             }
         }
     }
 }
-
 
 @Composable
 fun FeedScreen(
@@ -127,7 +118,9 @@ fun FeedScreen(
     onPublishClicked: () -> Unit = {}
 ) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFDCC8B6)),
         contentAlignment = Alignment.Center
     ) {
         MapView(
@@ -139,11 +132,20 @@ fun FeedScreen(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 16.dp, bottom = 16.dp, top = 16.dp),
-            containerColor = Color(0xFF90D1D8),
+            containerColor = Color(0xFF6B5B73),
             contentColor = Color.White,
         ) {
-            Icon(Icons.Default.Add, contentDescription = "New report")
+            Icon(Icons.Default.Add, contentDescription = "New winery")
         }
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun FeedScreenPreview() {
+    FeedScreen(
+        reports = emptyList(),
+        onReportClicked = {},
+        onPublishClicked = {}
+    )
+}

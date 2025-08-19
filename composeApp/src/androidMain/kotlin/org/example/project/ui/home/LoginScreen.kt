@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.example.project.R
 import org.example.project.ui.components.LoadingAnimation
+import androidx.compose.ui.tooling.preview.Preview
+
 
 
 private val balooBhaijaan2Family = FontFamily(
@@ -42,7 +44,7 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(color = Color(0xFFF0F0F0))
+                .background(color = Color(0xFFDCC8B6))
                 .padding(24.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -50,7 +52,7 @@ fun LoginScreen(
             Spacer(Modifier.height(80.dp))
             Text(
                 "welcome back!",
-                color = Color(0xFFDA90D1D8),
+                color = Color(0xFF6B5B73),
                 fontFamily = balooBhaijaan2Family,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 32.sp,
@@ -96,7 +98,7 @@ fun LoginScreen(
                     .height(44.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFC0C0),
+                    containerColor = Color(0xFF6B5B73),
                     contentColor = Color.White
                 )
             ) {
@@ -146,4 +148,16 @@ fun LoginScreen(
         }
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+fun LoginScreenPreview() {
+    LoginScreen(
+        isLoading = false,
+        errorMessage = null,
+        onLogin = { _, _ -> },
+        onNavigateToRegister = {}
+    )
+}
+
 
