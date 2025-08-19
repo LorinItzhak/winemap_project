@@ -1,78 +1,48 @@
 import SwiftUI
 
 struct HomeView: View {
+    @State private var scale: CGFloat = 0.0
     var body: some View {
-        ZStack {
-            Color("BackgroundGray")
-                .ignoresSafeArea()
-            
-            VStack(spacing: 24) {
-                Image("logo")
-                    .renderingMode(.original)
+        NavigationStack {
+            ZStack {
+                Image("winemap_bg")
                     .resizable()
-                    .scaledToFit()
-                    .frame(height: 165)
-                    .padding(.top, 100)
-                
-                VStack(spacing: 2) {
-                    Text("welcome to winemap_project")
-                        .font(.custom("BalooBhaijaan2-Bold", size: 22))
-
-                    Text("help finds winery quickly!")
-                        .font(.custom("BalooBhaijaan2-SemiBold", size: 22))
-                }
-                
-                VStack(alignment: .leading, spacing: 24) {
-                    ForEach([
-                        ("Quick Reports", "File a report in seconds"),
-                        ("Live Map",       "See every pin at a glance"),
-                        ("Direct Pickup",  "Call the reporter")
-                    ], id: \.0) { title, subtitle in
-                        HStack(spacing: 16) {
-                            Circle()
-                                .fill(Color.lightGreen)
-                                .frame(width: 30, height: 30)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(title)
-                                    .font(.custom("BalooBhaijaan2-Medium", size: 16))
-                                    .foregroundColor(.black)
-                                Text(subtitle)
-                                    .font(.custom("BalooBhaijaan2-Medium", size: 14))
-                                    .foregroundColor(.black)
-                            }
+                    .scaledToFill()
+                    .ignoresSafeArea()
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.95))
+                        .frame(width: 350, height: 350)
+                        .scaleEffect(scale)
+                    VStack(spacing: 16) {
+                        Image("logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 100, height: 100)
+                            .offset(y: -30)
+                        Text("The easy way to\ndiscover, rate and\nshare experiences\nfrom all wineries in\nIsrael")
+                            .font(.custom("BalooBhaijaan2-Regular", size: 16))
+                            .foregroundColor(.black)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(4)
+                        NavigationLink(destination: RegisterView()) {
+                            Text("LET'S GO !")
+                                .font(.custom("BalooBhaijaan2-Medium", size: 14))
+                                .foregroundColor(.white)
+                                .frame(width: 120, height: 40)
+                                .background(Color(red: 0.42, green: 0.36, blue: 0.45))
+                                .cornerRadius(8)
                         }
                     }
+                    .padding(40)
+                    .scaleEffect(scale)
                 }
-                
-                Spacer()
-                
-                VStack(spacing: 16) {
-                    NavigationLink(destination: RegisterView()) {
-                        Text("get started")
-                            .font(.custom("BalooBhaijaan2-Bold", size: 16))
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                            .background(Color.primaryPink)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
-                    
-                    NavigationLink(destination: LoginView()) {
-                        Text("log in")
-                            .font(.custom("BalooBhaijaan2-Bold", size: 16))
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.white.opacity(0.3))
-
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.white, lineWidth: 2)
-                            )
-                            .foregroundColor(.primaryPink)
-                    }
+            }
+            .onAppear {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.6, blendDuration: 0.2)) {
+                    scale = 1.0
                 }
-                .padding(32)
             }
         }
-    }}
+    }
+}

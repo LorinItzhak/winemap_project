@@ -1,21 +1,24 @@
 package org.example.project.ui.home
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,131 +34,79 @@ private val balooBhaijaan2Family = FontFamily(
 
 @Preview(showBackground = true)
 @Composable
-
 fun HomeScreen(
     onGetStarted: () -> Unit ={},
     onLogIn: () -> Unit={}
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color(0xFFF0F0F0))
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
+    val scale = remember { Animatable(0f) }
+    LaunchedEffect(true) {
+        scale.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        )
+    }
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Spacer(Modifier.height(124.dp))
         Image(
-            painter = painterResource(id = R.drawable.img),
-            contentDescription = "App Logo",
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(2f),
+            painter = painterResource(id = R.drawable.winemap_bg),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text("welcome to winemap_project",
-                fontFamily = balooBhaijaan2Family,
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp)
-            Text("help finds winery quickly!",
-                fontFamily = balooBhaijaan2Family,
-                fontWeight  = FontWeight.Normal,
-                fontSize    = 22.sp
-            )
-        }
-        Spacer(modifier = Modifier.height(32.dp))
-
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            listOf(
-                "Quick Reports" to "file a report in seconds",
-                "Live Map"      to "see every pin at a glance",
-                "Direct Pickup" to "call the reporter"
-            ).forEach { (title, subtitle) ->
-                Row(
-                    verticalAlignment   = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(
-                                start = 32.dp
-                            )
-                            .size(30.dp)
-                            .background(color = Color(0xFFDAEAE8), shape = CircleShape)
-                    )
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Text(
-                            text = title,
-                            fontSize = 16.sp,
-                            fontFamily = balooBhaijaan2Family,
-                            fontWeight = FontWeight.Normal,
-                        )
-
-                        Text(
-                            text = subtitle,
-                            fontSize = 14.sp,
-                            fontFamily = balooBhaijaan2Family,
-                            fontWeight = FontWeight.Normal,
-                            )
-                    }
-                }
-            }
-        }
-        Spacer(modifier = Modifier.weight(1f))
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Button(
-                onClick = onGetStarted,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(44.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFFC0C0), // pink
-                    contentColor   = Color.White
+        Box(
+            modifier = Modifier
+                .size(350.dp)
+                .align(Alignment.Center)
+                .background(
+                    color = Color.White.copy(alpha = 0.95f),
+                    shape = CircleShape
                 )
+                .scale(scale.value),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(40.dp)
             ) {
-                Text(
-                    "get started",
-                    fontSize   = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = balooBhaijaan2Family
-
+                Image(
+                    painter = painterResource(id = R.drawable.img),
+                    contentDescription = "Winemap Logo",
+                    modifier = Modifier
+                        .size(100.dp)
+                        .offset(y = (-30).dp)
                 )
-            }
-            OutlinedButton(
-                onClick = onLogIn,
-                modifier = Modifier
-                    .padding(bottom = 32.dp)
-                    .fillMaxWidth()
-                    .height(44.dp),
-                shape  = RoundedCornerShape(8.dp),
-                border = BorderStroke(2.dp, Color.White),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = Color.White.copy(alpha = 0.3f),
-                    contentColor   = Color(0xFFFFC0C0) // Primary pink
-                )
-            ) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    "log in",
+                    text = "The easy way to\ndiscover, rate and\nshare experiences\nfrom all wineries in\nIsrael",
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = balooBhaijaan2Family,
+                    color = Color.Black,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp,
+                    fontFamily = balooBhaijaan2Family
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = onGetStarted,
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(40.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF6B5B73)
                     )
+                ) {
+                    Text(
+                        text = "LET'S GO !",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = balooBhaijaan2Family
+                    )
+                }
             }
         }
     }
