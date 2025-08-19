@@ -404,17 +404,19 @@ fun NewReportScreen(
                         errorText = null
                         CloudinaryUploader.upload(context, uri) { url ->
                             uploading = false
-                            url?.let { imageUrl ->
+                            if (url == null) {
+                                errorText = "Image upload failed. Please try again."
+                            } else {
+                                println("🎯 About to publish:")
+                                println("🎯 currentPickedLocation: $currentPickedLocation")
                                 onPublish(
                                     userName,
                                     wineryName,
                                     content,
                                     rating,
-                                    imageUrl,
+                                    url,
                                     currentPickedLocation
                                 )
-                            } ?: run {
-                                errorText = "Image upload failed. Please try again."
                             }
                         }
                     }
@@ -426,7 +428,8 @@ fun NewReportScreen(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = WineColor,
                     contentColor = Color.White
-                )
+                ),
+                enabled = !uploading
             ) {
                 if (uploading) {
                     CircularProgressIndicator(
