@@ -47,7 +47,7 @@ struct BottomBar: View {
 
             MyReportsView()
                 .tabItem {
-                    Label("Reports", systemImage: "list.bullet")
+                    Label("My Posts", systemImage: "list.bullet")
                 }
         }
     }

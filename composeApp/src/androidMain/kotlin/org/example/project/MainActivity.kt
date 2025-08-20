@@ -38,12 +38,16 @@ import org.example.project.ui.report.EditReportScreen
 import org.example.project.ui.report.MyReportsScreen
 import org.example.project.ui.report.ReportDetailsScreen
 import java.net.URLDecoder
+import com.cloudinary.android.MediaManager
 
 
 @Suppress("NAME_SHADOWING")
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
+
         FirebaseApp.initializeApp(this)
 
         setContent {

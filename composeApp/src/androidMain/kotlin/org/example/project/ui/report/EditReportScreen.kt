@@ -44,6 +44,9 @@ import org.example.project.data.report.ReportModel
 import org.example.project.data.report.Location
 import java.util.Locale
 import kotlin.coroutines.resumeWithException
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
+import org.example.project.ui.profile.ProfileScreen
 
 
 private val balooBhaijaan2Family = FontFamily(
@@ -56,7 +59,7 @@ private val balooBhaijaan2Family = FontFamily(
 
 private val BgGray      = Color(0xFFF0F0F0)
 private val WineColor   = Color(0xFF8B0000)
-private val PrimaryPink = Color(0xFFFEB0B2)
+
 private val LabelGray   = Color(0xFF8D8D8D)
 private val StarColor   = Color(0xFFFFD700)
 
@@ -123,7 +126,7 @@ fun EditReportScreen(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(12.dp),
-                    containerColor = Color(0xFF90D1D8),
+                    containerColor = Color(0xFF8B0000),
                     contentColor = Color.White
                 ) {
                     Icon(Icons.Default.Edit, contentDescription = "Change photo")
@@ -345,4 +348,27 @@ private fun LocationEditor(
             )
         }
     }
+}
+
+
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun EditReportScreenPreview() {
+  // sample ReportModel so the screen can render
+  val sampleReport = ReportModel(
+    id = "1",
+    userId = "user1",
+    userName = "John Doe",
+    wineryName = "Best Winery",
+    content = "Great wine with fruity notes",
+    rating = 4,
+    imageUrl = "https://picsum.photos/400",
+    location = Location(32.06, 34.79, "Tel Aviv, Israel")
+  )
+
+  EditReportScreen(
+    report = sampleReport,
+    onSave = { _, _, _, _, _, _ -> }
+  )
 }

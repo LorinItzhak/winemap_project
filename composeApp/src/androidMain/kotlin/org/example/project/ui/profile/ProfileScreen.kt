@@ -45,7 +45,7 @@ fun ProfileScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color(0xFFDCC8B6))
+            .background(color = Color(0xFFFFFFFF))
     ) {
         Column(
             modifier = Modifier
@@ -100,7 +100,7 @@ fun ProfileScreen(
                 Button(
                     onClick = onSignOut,
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6B5B73)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000)),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
@@ -114,7 +114,7 @@ fun ProfileScreen(
                 SmallFloatingActionButton(
                     onClick = { if (!isLoading) isEditing = true },
                     modifier = Modifier.alpha(if (isLoading) 0.4f else 1f),
-                    containerColor = Color(0xFF6B5B73),
+                    containerColor = Color(0xFF8B0000),
                     contentColor = Color.White,
                 ) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit Profile")
@@ -123,7 +123,7 @@ fun ProfileScreen(
                 Button(
                     onClick = { isEditing = false },
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6B5B73)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000)),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
@@ -144,7 +144,7 @@ fun ProfileScreen(
                         }
                     },
                     enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6B5B73)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000)),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(

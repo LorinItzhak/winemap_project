@@ -44,7 +44,7 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(color = Color(0xFFDCC8B6))
+                .background(color = Color(0xFFFFFFFF))
                 .padding(24.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -52,7 +52,7 @@ fun LoginScreen(
             Spacer(Modifier.height(80.dp))
             Text(
                 "welcome back!",
-                color = Color(0xFF6B5B73),
+                color = Color(0xFF8B0000),
                 fontFamily = balooBhaijaan2Family,
                 fontWeight = FontWeight.ExtraBold,
                 fontSize = 32.sp,
@@ -98,7 +98,7 @@ fun LoginScreen(
                     .height(44.dp),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF6B5B73),
+                    containerColor = Color(0xFF8B0000),
                     contentColor = Color.White
                 )
             ) {
