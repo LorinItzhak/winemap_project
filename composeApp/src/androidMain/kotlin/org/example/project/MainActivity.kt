@@ -39,6 +39,10 @@ import org.example.project.ui.report.MyReportsScreen
 import org.example.project.ui.report.ReportDetailsScreen
 import java.net.URLDecoder
 import com.cloudinary.android.MediaManager
+// 🎯 הוספות חדשות!
+import org.example.project.data.report.LocalReportRepositoryImpl
+import org.example.project.data.report.DatabaseModule
+import org.example.project.data.report.DatabaseDriverFactory
 
 
 @Suppress("NAME_SHADOWING")
@@ -46,15 +50,22 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-
         FirebaseApp.initializeApp(this)
+
+        // 🎯 אתחול הדאטאבייס המקומי
+        try {
+            DatabaseModule.init(DatabaseDriverFactory())
+            println("✅ Local database initialized successfully")
+        } catch (e: Exception) {
+            println("❌ Database initialization failed: ${e.message}")
+            e.printStackTrace()
+        }
 
         setContent {
             MaterialTheme {
                 val vm: AndroidUserViewModel = viewModel()
                 val currentUid by vm.currentUid.collectAsState()
-                val startDestination = if (currentUid != null) "feed" else "home"
+                val startDestination = "home"
 
                 val barRoutes = setOf("feed", "profile", "reports")
                 fun shouldShowBars(route: String?): Boolean =
@@ -160,9 +171,9 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // 4) feed
+                        // 4) feed - 🎯 שינוי חשוב!
                         composable("feed") {
-                            val reportVm = remember { ReportViewModel() }
+                            val reportVm = remember { ReportViewModel(LocalReportRepositoryImpl()) }
                             val uiState by reportVm.uiState.collectAsState()
                             LaunchedEffect(Unit) { reportVm.loadAllReports() }
                             val reports = when (uiState) {
@@ -203,9 +214,9 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // 6) new wine review
+                        // 6) new wine review - 🎯 שינוי חשוב!
                         composable("new-report") {
-                            val reportVm = remember { ReportViewModel() }
+                            val reportVm = remember { ReportViewModel(LocalReportRepositoryImpl()) }
                             val userVm: AndroidUserViewModel = viewModel()
                             val currentUid by userVm.currentUid.collectAsState()
                             val uiState by reportVm.uiState.collectAsState()
@@ -243,9 +254,9 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // 7) my wine reviews
+                        // 7) my wine reviews - 🎯 שינוי חשוב!
                         composable("reports") {
-                            val reportVm = remember { ReportViewModel() }
+                            val reportVm = remember { ReportViewModel(LocalReportRepositoryImpl()) }
                             val userVm: AndroidUserViewModel = viewModel()
                             val currentUid by userVm.currentUid.collectAsState()
 
@@ -272,14 +283,14 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // 8) wine review details
+                        // 8) wine review details - 🎯 שינוי חשוב!
                         composable("report-details/{reportJson}") { backStackEntry ->
                             val raw = backStackEntry.arguments?.getString("reportJson").orEmpty()
                             val decoded = URLDecoder.decode(raw, Charsets.UTF_8.name())
                             val report = Json.decodeFromString<ReportModel>(decoded)
 
-                            // local VM to handle delete result
-                            val reportVm = remember { ReportViewModel() }
+                            // local VM to handle delete result - 🎯 שינוי חשוב!
+                            val reportVm = remember { ReportViewModel(LocalReportRepositoryImpl()) }
                             val uiState by reportVm.uiState.collectAsState()
 
                             ReportDetailsScreen(
@@ -305,13 +316,13 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        // 9) edit wine review
+                        // 9) edit wine review - 🎯 שינוי חשוב!
                         composable("edit-report/{reportJson}") { backStackEntry ->
                             val raw = backStackEntry.arguments?.getString("reportJson").orEmpty()
                             val decoded = java.net.URLDecoder.decode(raw, Charsets.UTF_8.name())
                             val report = Json.decodeFromString<ReportModel>(decoded)
 
-                            val reportVm = remember { ReportViewModel() }
+                            val reportVm = remember { ReportViewModel(LocalReportRepositoryImpl()) }
                             val uiState by reportVm.uiState.collectAsState()
 
                             EditReportScreen(
