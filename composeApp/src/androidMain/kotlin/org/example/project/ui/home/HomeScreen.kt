@@ -96,7 +96,7 @@ fun HomeScreen(
                         .width(120.dp)
                         .height(40.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF6B5B73)
+                        containerColor = Color(0xFF8B0000)
                     )
                 ) {
                     Text(
