@@ -116,7 +116,7 @@ fun MapPickerDialog(
                     Button(
                         onClick = onDismiss,
                         modifier = Modifier.weight(1f),
-                        colors  = ButtonDefaults.buttonColors(containerColor = Color(0xFFF69092)),
+                        colors  = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000)),
                         shape   = RoundedCornerShape(8.dp)
                     ) { Text("Cancel",
                         fontFamily = balooBhaijaan2Family,
@@ -129,7 +129,7 @@ fun MapPickerDialog(
                         onClick = { picked?.let { onPicked(it.latitude, it.longitude); onDismiss() } },
                         enabled = picked != null,
                         modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEB0B2)),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF8B0000)),
                         shape = RoundedCornerShape(8.dp)
                     ) { Text("Save",
                         fontFamily = balooBhaijaan2Family,
